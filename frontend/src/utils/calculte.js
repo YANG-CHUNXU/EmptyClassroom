@@ -55,9 +55,21 @@ function CalculateSelectedDateClassInfo(classInfo, selectedCampus, selectedDate)
         max_building_id: 0
     };
     for (let classroomClass of classTable.class) {
-        const buildingName = classroomClass.name.split('-')[0];
-        const buildingId = buildingIdMap[buildingName];
-        const classroomName = classroomClass.name.split('-')[1];
+        const fullName = classroomClass.name;
+        const cutPlace = fullName.indexOf('-');
+
+        let buildingName = '';
+        let classroomName = fullName;
+        let buildingId = null;
+
+        if (cutPlace !== -1) {
+            buildingName = fullName.slice(0, cutPlace);
+            classroomName = fullName.slice(cutPlace + 1);
+            buildingId = buildingIdMap[buildingName];
+        } else {
+            console.warn(`教室名称格式不规范: ${fullName}`);
+            continue;
+        }
         if (resp.building_info_map[buildingId] == undefined) {
             resp.building_info_map[buildingId] = {
                 name: buildingName,
@@ -79,7 +91,7 @@ function CalculateSelectedDateClassInfo(classInfo, selectedCampus, selectedDate)
                 size: classroomClass.seat,
                 can_trust: false,
                 building_id: buildingId,
-                type: classTable.typeMap[classroomClass.name]
+                type: classTable.typeMap[fullName]
             };
             for (let i = 0; i < 14; i++) {
                 buildingInfo.class_matrix[i][buildingInfo.classroom_id_map[classroomName]] = 0;
