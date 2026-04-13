@@ -1,11 +1,11 @@
 package logs
 
 import (
+	"context"
 	"crypto/rand"
 	"encoding/hex"
 	"fmt"
 	"github.com/gin-gonic/gin"
-	"golang.org/x/net/context"
 	"io"
 	"log"
 	"os"
@@ -33,7 +33,7 @@ func Init(isMain bool) {
 }
 
 func SetNewContextForGinContext(c *gin.Context) {
-	newCtx := GenNewContext()
+	newCtx := WithLogID(c.Request.Context())
 	c.Set("ctx", newCtx)
 	c.Writer.Header().Set("LogID", GetLogIDFromContext(newCtx))
 }
@@ -70,6 +70,13 @@ func GenLogID() string {
 
 func GenNewContext() context.Context {
 	return context.WithValue(context.Background(), LogIDKey, GenLogID())
+}
+
+func WithLogID(parent context.Context) context.Context {
+	if parent == nil {
+		parent = context.Background()
+	}
+	return context.WithValue(parent, LogIDKey, GenLogID())
 }
 
 func GetLogIDFromContext(ctx context.Context) string {

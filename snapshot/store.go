@@ -2,6 +2,7 @@ package snapshot
 
 import (
 	"EmptyClassroom/service/model"
+	"EmptyClassroom/utils"
 	"bytes"
 	"context"
 	"encoding/json"
@@ -51,7 +52,7 @@ func NewBlobStore(token string, pathname string) Store {
 	return &blobStore{
 		token:    token,
 		pathname: pathname,
-		client:   &http.Client{},
+		client:   utils.OutboundHTTPClient(),
 	}
 }
 

@@ -5,15 +5,56 @@ import (
 	"bytes"
 	"context"
 	"io"
+	"log"
 	"net/http"
+	"os"
+	"sync"
+	"time"
 )
 
+const (
+	OutboundHTTPTimeoutEnvKey  = "OUTBOUND_HTTP_TIMEOUT"
+	defaultOutboundHTTPTimeout = 15 * time.Second
+)
+
+var (
+	outboundHTTPClientOnce sync.Once
+	outboundHTTPClient     *http.Client
+)
+
+func OutboundHTTPClient() *http.Client {
+	outboundHTTPClientOnce.Do(func() {
+		outboundHTTPClient = &http.Client{
+			Timeout: outboundHTTPTimeout(),
+		}
+	})
+	return outboundHTTPClient
+}
+
+func outboundHTTPTimeout() time.Duration {
+	raw := os.Getenv(OutboundHTTPTimeoutEnvKey)
+	if raw == "" {
+		return defaultOutboundHTTPTimeout
+	}
+
+	timeout, err := time.ParseDuration(raw)
+	if err != nil || timeout <= 0 {
+		log.Printf("[Warn] invalid %s=%q, falling back to %s", OutboundHTTPTimeoutEnvKey, raw, defaultOutboundHTTPTimeout)
+		return defaultOutboundHTTPTimeout
+	}
+
+	return timeout
+}
+
 func HttpPostJson(ctx context.Context, url string, jsonStr []byte) (int, http.Header, []byte, error) {
-	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonStr))
+	req, err := http.NewRequestWithContext(ctx, "POST", url, bytes.NewBuffer(jsonStr))
+	if err != nil {
+		logs.CtxError(ctx, "http post json error: %v", err)
+		return 0, nil, nil, err
+	}
 	req.Header.Set("Content-Type", "application/json")
 
-	client := &http.Client{}
-	resp, err := client.Do(req)
+	resp, err := OutboundHTTPClient().Do(req)
 	if err != nil {
 		logs.CtxError(ctx, "http post json error: %v", err)
 		return 0, nil, nil, err
@@ -27,7 +68,7 @@ func HttpPostJson(ctx context.Context, url string, jsonStr []byte) (int, http.He
 }
 
 func HttpPostForm(ctx context.Context, url string, data map[string]string) (int, http.Header, []byte, error) {
-	req, err := http.NewRequest("POST", url, nil)
+	req, err := http.NewRequestWithContext(ctx, "POST", url, nil)
 	if err != nil {
 		logs.CtxError(ctx, "http post form error: %v", err)
 		return 0, nil, nil, err
@@ -38,8 +79,7 @@ func HttpPostForm(ctx context.Context, url string, data map[string]string) (int,
 	}
 	req.URL.RawQuery = q.Encode()
 
-	client := &http.Client{}
-	resp, err := client.Do(req)
+	resp, err := OutboundHTTPClient().Do(req)
 	if err != nil {
 		logs.CtxError(ctx, "http post form error: %v", err)
 		return 0, nil, nil, err
@@ -53,7 +93,7 @@ func HttpPostForm(ctx context.Context, url string, data map[string]string) (int,
 }
 
 func HttpPostFormWithHeader(ctx context.Context, url string, data map[string]string, header map[string]string) (int, http.Header, []byte, error) {
-	req, err := http.NewRequest("POST", url, nil)
+	req, err := http.NewRequestWithContext(ctx, "POST", url, nil)
 	if err != nil {
 		logs.CtxError(ctx, "http post form with header error: %v", err)
 		return 0, nil, nil, err
@@ -67,8 +107,7 @@ func HttpPostFormWithHeader(ctx context.Context, url string, data map[string]str
 		req.Header.Add(k, v)
 	}
 
-	client := &http.Client{}
-	resp, err := client.Do(req)
+	resp, err := OutboundHTTPClient().Do(req)
 	if err != nil {
 		logs.CtxError(ctx, "http post form with header error: %v", err)
 		return 0, nil, nil, err
@@ -81,7 +120,7 @@ func HttpPostFormWithHeader(ctx context.Context, url string, data map[string]str
 }
 
 func HttpGetWithHeader(ctx context.Context, url string, header map[string]string) (int, http.Header, []byte, error) {
-	req, err := http.NewRequest("GET", url, nil)
+	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
 	if err != nil {
 		logs.CtxError(ctx, "http get with header error: %v", err)
 		return 0, nil, nil, err
@@ -90,8 +129,7 @@ func HttpGetWithHeader(ctx context.Context, url string, header map[string]string
 		req.Header.Add(k, v)
 	}
 
-	client := &http.Client{}
-	resp, err := client.Do(req)
+	resp, err := OutboundHTTPClient().Do(req)
 	if err != nil {
 		logs.CtxError(ctx, "http get with header error: %v", err)
 		return 0, nil, nil, err

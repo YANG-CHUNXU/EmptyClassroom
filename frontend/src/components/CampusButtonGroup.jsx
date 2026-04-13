@@ -16,15 +16,17 @@ import {
 import "./CampusButtonGroup.css";
 
 function CampusButtonGroup(props) {
+  const { todayData, selectedCampus, setSelectedCampus, setSelectedBuildings } =
+    props;
   const [campusList, setCampusList] = useState([]);
 
   useEffect(() => {
-    if (props.todayData.code != 0) {
+    if (todayData.code != 0) {
       setCampusList([]);
       return;
     }
 
-    const campusInfoMap = props.todayData.data?.campus_info_map ?? {};
+    const campusInfoMap = todayData.data?.campus_info_map ?? {};
     const list = Object.keys(campusInfoMap);
 
     // 排序，西土城在第一，沙河在第二，其他按照字典序
@@ -47,21 +49,21 @@ function CampusButtonGroup(props) {
     setCampusList(list);
 
     if (list.length == 0) {
-      props.setSelectedCampus("");
-      props.setSelectedBuildings([]);
+      setSelectedCampus("");
+      setSelectedBuildings([]);
       return;
     }
 
-    if (!list.includes(props.selectedCampus)) {
-      props.setSelectedCampus(list[0]);
-      props.setSelectedBuildings([]);
+    if (!list.includes(selectedCampus)) {
+      setSelectedCampus(list[0]);
+      setSelectedBuildings([]);
     }
   }, [
-    props.selectedCampus,
-    props.setSelectedBuildings,
-    props.setSelectedCampus,
-    props.todayData.code,
-    props.todayData.data?.campus_info_map,
+    selectedCampus,
+    setSelectedBuildings,
+    setSelectedCampus,
+    todayData.code,
+    todayData.data?.campus_info_map,
   ]);
 
   const [openSettingModal, setOpenSettingModal] = useState(false);

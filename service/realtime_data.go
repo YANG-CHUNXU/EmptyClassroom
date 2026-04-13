@@ -29,8 +29,10 @@ const (
 )
 
 var (
-	Token            string
-	ErrLoginRejected = errors.New("login rejected")
+	Token                string
+	ErrLoginRejected     = errors.New("login rejected")
+	realtimeLoginRequest = utils.HttpPostForm
+	realtimeQueryRequest = utils.HttpPostFormWithHeader
 )
 
 const currentConfigVersion = "2026-04-13-shahe-building-split-v2"
@@ -50,7 +52,7 @@ func Login(ctx context.Context) error {
 		"captchaData": "",
 		"codeVal":     "",
 	}
-	code, _, body, err := utils.HttpPostForm(ctx, LoginURL, req)
+	code, _, body, err := realtimeLoginRequest(ctx, LoginURL, req)
 	if err != nil {
 		logs.CtxError(ctx, "login failed: %v", err)
 		return err
@@ -82,7 +84,9 @@ func QueryOne(ctx context.Context, id int) ([]model.JWClassInfo, error) {
 	err := Login(ctx)
 	// 重试3次
 	for shouldRetryRealtime(err) && errorTime < 3 {
-		time.Sleep(10 * time.Second)
+		if err := waitForRealtimeRetry(ctx, 10*time.Second); err != nil {
+			return nil, err
+		}
 		err = Login(ctx)
 		errorTime++
 	}
@@ -99,7 +103,7 @@ func QueryOne(ctx context.Context, id int) ([]model.JWClassInfo, error) {
 	req := map[string]string{
 		"campusId": resolveRealtimeCampusID(id),
 	}
-	code, _, body, err := utils.HttpPostFormWithHeader(ctx, QueryURL, req, header)
+	code, _, body, err := realtimeQueryRequest(ctx, QueryURL, req, header)
 	if err != nil {
 		logs.CtxError(ctx, "query failed: %v", err)
 		return nil, err
@@ -191,11 +195,16 @@ func QueryAll(ctx context.Context) (classInfo *model.ClassInfo, err error) {
 			jwClassInfo, err := QueryOne(ctx, campus.Id)
 			// 重试3次
 			for shouldRetryRealtime(err) && errorTime < 3 {
-				time.Sleep(10 * time.Second)
+				if err := waitForRealtimeRetry(ctx, 10*time.Second); err != nil {
+					return nil, err
+				}
 				jwClassInfo, err = QueryOne(ctx, campus.Id)
 				errorTime++
 			}
 			if err != nil {
+				if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
+					return nil, err
+				}
 				logs.CtxError(ctx, "query failed: %v", err)
 				classInfo.IsFallback[campus.Name] = true
 				classInfo.FallbackReason[campus.Name] = describeRealtimeFailure(err)
@@ -230,7 +239,22 @@ func QueryAll(ctx context.Context) (classInfo *model.ClassInfo, err error) {
 }
 
 func shouldRetryRealtime(err error) bool {
-	return err != nil && !errors.Is(err, ErrLoginRejected)
+	return err != nil &&
+		!errors.Is(err, ErrLoginRejected) &&
+		!errors.Is(err, context.Canceled) &&
+		!errors.Is(err, context.DeadlineExceeded)
+}
+
+func waitForRealtimeRetry(ctx context.Context, delay time.Duration) error {
+	timer := time.NewTimer(delay)
+	defer timer.Stop()
+
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	case <-timer.C:
+		return nil
+	}
 }
 
 func describeRealtimeFailure(err error) string {

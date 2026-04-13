@@ -16,7 +16,7 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 
 	bootstrap.Init(false)
 
-	ctx := logs.GenNewContext()
+	ctx := logs.WithLogID(r.Context())
 	response, status := service.GetDataResponse(ctx, bootstrap.NewSnapshotStore())
 	httpapi.WriteJSON(w, status, response)
 }

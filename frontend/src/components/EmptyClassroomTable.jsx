@@ -1,59 +1,146 @@
 import PropTypes from "prop-types";
 import { Empty, Card, Table, Button, Tag, Modal, Descriptions } from "antd";
 import { QuestionCircleOutlined } from "@ant-design/icons";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import "./EmptyClassroomTable.css";
 import CalculateEmptyClassroom from "../utils/calculte";
 import dayjs from "dayjs";
 
+function formatEmptyTimeList(emptyTimeList) {
+  const classTime = [
+    "08:45",
+    "09:35",
+    "10:35",
+    "11:25",
+    "12:15",
+    "13:45",
+    "14:35",
+    "15:30",
+    "16:25",
+    "17:20",
+    "18:10",
+    "19:15",
+    "20:05",
+    "20:55",
+  ];
+
+  const classStartTime = [
+    "08:00",
+    "08:50",
+    "09:50",
+    "10:40",
+    "11:30",
+    "13:00",
+    "13:50",
+    "14:45",
+    "15:40",
+    "16:35",
+    "17:25",
+    "18:30",
+    "19:20",
+    "20:10",
+  ];
+
+  let emptyTimeListStr = "";
+  if (emptyTimeList[0] == 0) {
+    emptyTimeListStr += "00:00";
+  } else {
+    emptyTimeListStr += "00:00-08:00, " + classTime[emptyTimeList[0] - 1];
+  }
+
+  for (let i = 1; i < emptyTimeList.length; i++) {
+    if (emptyTimeList[i] - emptyTimeList[i - 1] == 1) {
+      continue;
+    }
+
+    emptyTimeListStr +=
+      "-" +
+      classStartTime[emptyTimeList[i - 1] + 1] +
+      ", " +
+      classTime[emptyTimeList[i] - 1];
+  }
+
+  if (emptyTimeList[emptyTimeList.length - 1] != 13) {
+    emptyTimeListStr +=
+      "-" + classStartTime[emptyTimeList[emptyTimeList.length - 1] + 1];
+    emptyTimeListStr += ", " + classTime[classTime.length - 1] + "-24:00";
+  } else {
+    emptyTimeListStr += "-24:00";
+  }
+
+  return emptyTimeListStr;
+}
+
 function EmptyClassroomTable(props) {
-  const [emptyClassroom, setEmptyClassroom] = useState([]);
+  const {
+    todayData,
+    selectedDate,
+    selectedCampus,
+    selectedBuildings,
+    selectedClassTimes,
+    setIsError,
+    useClassTable,
+  } = props;
   const [modalTitle, setModalTitle] = useState("");
   const [modalContent, setModalContent] = useState([]);
   const [openModal, setOpenModal] = useState(false);
 
-  useEffect(() => {
+  const { emptyClassroom, hasCalculationError } = useMemo(() => {
     if (
-      props.todayData.code == 0 &&
-      props.selectedCampus != "" &&
-      props.selectedBuildings.length != 0 &&
-      props.selectedClassTimes.length != 0
+      todayData.code != 0 ||
+      selectedCampus == "" ||
+      selectedBuildings.length == 0 ||
+      selectedClassTimes.length == 0
     ) {
-      let newEmptyClassroom = {};
-      try {
-        newEmptyClassroom = CalculateEmptyClassroom(
-          props.todayData.data,
-          props.selectedCampus,
-          props.selectedDate.toDate(),
-          props.selectedBuildings,
-          props.selectedClassTimes
-        );
-      } catch (e) {
-        props.setIsError(true);
-        return;
-      }
-      setEmptyClassroom(newEmptyClassroom);
+      return {
+        emptyClassroom: [],
+        hasCalculationError: false,
+      };
+    }
+
+    try {
+      return {
+        emptyClassroom: CalculateEmptyClassroom(
+          todayData.data,
+          selectedCampus,
+          selectedDate.toDate(),
+          selectedBuildings,
+          selectedClassTimes
+        ),
+        hasCalculationError: false,
+      };
+    } catch {
+      return {
+        emptyClassroom: [],
+        hasCalculationError: true,
+      };
     }
   }, [
-    props,
-    props.selectedBuildings,
-    props.selectedCampus,
-    props.selectedClassTimes,
-    props.selectedDate,
-    props.todayData.code,
-    props.todayData.data,
+    todayData.code,
+    todayData.data,
+    selectedCampus,
+    selectedDate,
+    selectedBuildings,
+    selectedClassTimes,
   ]);
-  if (props.todayData.code != 0) {
+
+  useEffect(() => {
+    if (hasCalculationError) {
+      setIsError(true);
+    }
+  }, [hasCalculationError, setIsError]);
+
+  if (todayData.code != 0) {
     return null;
   }
 
-  if (props.selectedCampus == "") {
+  if (selectedCampus == "") {
     return null;
   }
 
   if (
-    props.selectedBuildings.length == 0 ||
-    props.selectedClassTimes.length == 0 ||
+    selectedBuildings.length == 0 ||
+    selectedClassTimes.length == 0 ||
     emptyClassroom.length == 0
   ) {
     return (
@@ -71,11 +158,11 @@ function EmptyClassroomTable(props) {
         <Empty
           image={Empty.PRESENTED_IMAGE_SIMPLE}
           description={
-            props.selectedBuildings.length == 0
-              ? props.selectedClassTimes.length == 0
+            selectedBuildings.length == 0
+              ? selectedClassTimes.length == 0
                 ? "请选择教学楼和上课时间"
                 : "请选择教学楼"
-              : props.selectedClassTimes.length == 0
+              : selectedClassTimes.length == 0
               ? "请选择上课时间"
               : "没有空教室了😭"
           }
@@ -84,91 +171,26 @@ function EmptyClassroomTable(props) {
     );
   }
 
-  function ShowClassroomEmptyInfo(name) {
-    let classroomInfo = {};
-    for (let i = 0; i < emptyClassroom.length; i++) {
-      if (emptyClassroom[i].name == name) {
-        classroomInfo = emptyClassroom[i];
-        break;
-      }
-    }
-    const emptyTimeList = classroomInfo.empty_class_time;
-    const class_time = [
-      "08:45",
-      "09:35",
-      "10:35",
-      "11:25",
-      "12:15",
-      "13:45",
-      "14:35",
-      "15:30",
-      "16:25",
-      "17:20",
-      "18:10",
-      "19:15",
-      "20:05",
-      "20:55",
-    ];
-
-    const class_start_time = [
-      "08:00",
-      "08:50",
-      "09:50",
-      "10:40",
-      "11:30",
-      "13:00",
-      "13:50",
-      "14:45",
-      "15:40",
-      "16:35",
-      "17:25",
-      "18:30",
-      "19:20",
-      "20:10",
-    ];
-    let emptyTimeListStr = "";
-    if (emptyTimeList[0] == 0) {
-      emptyTimeListStr += "00:00";
-    } else {
-      emptyTimeListStr += "00:00-08:00, " + class_time[emptyTimeList[0] - 1];
-    }
-    for (let i = 1; i < emptyTimeList.length; i++) {
-      if (emptyTimeList[i] - emptyTimeList[i - 1] == 1) {
-        continue;
-      } else {
-        emptyTimeListStr +=
-          "-" +
-          class_start_time[emptyTimeList[i - 1] + 1] +
-          ", " +
-          class_time[emptyTimeList[i] - 1];
-      }
-    }
-    if (emptyTimeList[emptyTimeList.length - 1] != 13) {
-      emptyTimeListStr +=
-        "-" + class_start_time[emptyTimeList[emptyTimeList.length - 1] + 1];
-      emptyTimeListStr += ", " + class_time[class_time.length - 1] + "-24:00";
-    } else {
-      emptyTimeListStr += "-24:00";
-    }
+  function ShowClassroomEmptyInfo(classroomInfo) {
     const data = [
       {
         key: "座位数",
-        value: "100",
+        value: classroomInfo.size,
       },
       {
         key: "类型",
-        value: "多媒体教室",
+        value: classroomInfo.type,
       },
       {
         key: "空闲时间",
-        value: emptyTimeListStr,
+        value: formatEmptyTimeList(classroomInfo.empty_class_time),
       },
       {
         key: "数据来源",
         value: classroomInfo.can_trust ? "教务（可信）" : "课表（参考）",
       },
     ];
-    setModalTitle(name);
+    setModalTitle(classroomInfo.name);
     setModalContent(data);
     setOpenModal(true);
   }
@@ -179,13 +201,13 @@ function EmptyClassroomTable(props) {
       key: "name",
       dataIndex: "name",
       align: "center",
-      render: (text) => {
+      render: (text, record) => {
         return (
           <span style={{ display: "flex", justifyContent: "center" }}>
             <Button
               size="small"
               onClick={() => {
-                ShowClassroomEmptyInfo(text);
+                ShowClassroomEmptyInfo(record);
               }}
             >
               {text}
@@ -253,11 +275,11 @@ function EmptyClassroomTable(props) {
       >
         <Table
           dataSource={
-            !props.useClassTable &&
-            !(props.selectedCampus == "海南") &&
-            props.selectedDate.isSame(dayjs(), "day") &&
-            (props.todayData.data.is_fallback == undefined ||
-              !props.todayData.data.is_fallback[props.selectedCampus])
+            !useClassTable &&
+            !(selectedCampus == "海南") &&
+            selectedDate.isSame(dayjs(), "day") &&
+            (todayData.data.is_fallback == undefined ||
+              !todayData.data.is_fallback[selectedCampus])
               ? emptyClassroom.filter((item) => item.can_trust)
               : emptyClassroom
           }
