@@ -7,7 +7,6 @@ import CalculateEmptyClassroom from "../utils/calculte";
 import dayjs from "dayjs";
 
 function EmptyClassroomTable(props) {
-  console.log(props.selectedBuildings);
   const [emptyClassroom, setEmptyClassroom] = useState([]);
   const [modalTitle, setModalTitle] = useState("");
   const [modalContent, setModalContent] = useState([]);

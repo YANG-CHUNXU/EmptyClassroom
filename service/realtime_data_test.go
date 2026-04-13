@@ -1,7 +1,6 @@
 package service
 
 import (
-	"EmptyClassroom/cache"
 	"EmptyClassroom/config"
 	"EmptyClassroom/logs"
 	"encoding/json"
@@ -13,7 +12,6 @@ import (
 func init() {
 	logs.Init(false)
 	config.InitConfig()
-	cache.InitCache()
 }
 
 func TestLogin(t *testing.T) {

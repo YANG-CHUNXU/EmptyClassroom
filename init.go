@@ -1,18 +1,14 @@
+//go:build localserver
+
 package main
 
 import (
-	"EmptyClassroom/cache"
-	"EmptyClassroom/config"
-	"EmptyClassroom/logs"
-	"EmptyClassroom/service"
+	"EmptyClassroom/bootstrap"
 	"EmptyClassroom/service/model"
 	"encoding/gob"
 )
 
 func Init() {
 	gob.Register(&model.ClassInfo{})
-	logs.Init(true)
-	config.InitConfig()
-	cache.InitCache()
-	service.StartCron()
+	bootstrap.Init(true)
 }

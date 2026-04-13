@@ -3,9 +3,12 @@ package config
 import (
 	"EmptyClassroom/logs"
 	"context"
+	"embed"
 	"encoding/json"
-	"io"
+	"errors"
+	"io/fs"
 	"os"
+	"path/filepath"
 )
 
 const (
@@ -60,50 +63,61 @@ type ClassTableClassroomInfo struct {
 
 var GlobalConfig *Config
 
+//go:embed data/*.json
+var embeddedConfigFS embed.FS
+
+func loadConfigFile(configPath string, filename string) ([]byte, error) {
+	if configPath != "" {
+		fullPath := filepath.Join(configPath, filename)
+		configContent, err := os.ReadFile(fullPath)
+		if err != nil {
+			return nil, err
+		}
+		return configContent, nil
+	}
+
+	configContent, err := fs.ReadFile(embeddedConfigFS, filepath.ToSlash(filepath.Join("data", filename)))
+	if err != nil {
+		return nil, err
+	}
+	return configContent, nil
+}
+
+func mustLoadConfigFile(configPath string, filename string) []byte {
+	configContent, err := loadConfigFile(configPath, filename)
+	if err != nil {
+		logs.CtxError(context.Background(), "load config file failed: %v", err)
+		panic(err)
+	}
+	return configContent
+}
+
 func InitConfig() {
 	configPath := os.Getenv(ConfigPathKey)
-	if configPath == "" {
-		configPath = "config"
+	if configPath != "" {
+		info, err := os.Stat(configPath)
+		if err != nil {
+			logs.CtxError(context.Background(), "stat config directory failed: %v", err)
+			panic(err)
+		}
+		if !info.IsDir() {
+			err = errors.New("CONFIG_PATH is not a directory")
+			logs.CtxError(context.Background(), "%v", err)
+			panic(err)
+		}
 	}
-	_, err := os.Stat(configPath + "/config.json")
-	if err != nil {
-		logs.CtxError(context.Background(), "stat config file failed: %v", err)
-		panic(err)
-	}
-	configFile, err := os.Open(configPath + "/config.json")
-	if err != nil {
-		logs.CtxError(context.Background(), "open config file failed: %v", err)
-		panic(err)
-	}
-	configContent, err := io.ReadAll(configFile)
-	if err != nil {
-		logs.CtxError(context.Background(), "read config file failed: %v", err)
-		panic(err)
-	}
+
+	configContent := mustLoadConfigFile(configPath, "config.json")
 	GlobalConfig = new(Config)
-	err = json.Unmarshal(configContent, &GlobalConfig)
+	err := json.Unmarshal(configContent, GlobalConfig)
 	if err != nil {
 		logs.CtxError(context.Background(), "unmarshal config file failed: %v", err)
 		panic(err)
 	}
 	for _, building := range GlobalConfig.Campus {
-		_, err := os.Stat(configPath + "/" + building.Name + ".json")
-		if err != nil {
-			logs.CtxError(context.Background(), "stat config file failed: %v", err)
-			panic(err)
-		}
-		configFile, err := os.Open(configPath + "/" + building.Name + ".json")
-		if err != nil {
-			logs.CtxError(context.Background(), "open configPathconfig file failed: %v", err)
-			panic(err)
-		}
-		configContent, err := io.ReadAll(configFile)
-		if err != nil {
-			logs.CtxError(context.Background(), "read config file failed: %v", err)
-			panic(err)
-		}
+		configContent = mustLoadConfigFile(configPath, building.Name+".json")
 		buildingConfig := new(ClassTable)
-		err = json.Unmarshal(configContent, &buildingConfig)
+		err = json.Unmarshal(configContent, buildingConfig)
 		if err != nil {
 			logs.CtxError(context.Background(), "unmarshal config file failed: %v", err)
 			panic(err)
@@ -113,23 +127,10 @@ func InitConfig() {
 		}
 		GlobalConfig.ClassTable.ClassTableMap[building.Name] = *buildingConfig
 	}
-	_, err = os.Stat(configPath + "/notification.json")
-	if err != nil {
-		logs.CtxError(context.Background(), "stat config file failed: %v", err)
-		panic(err)
-	}
-	configFile, err = os.Open(configPath + "/notification.json")
-	if err != nil {
-		logs.CtxError(context.Background(), "open config file failed: %v", err)
-		panic(err)
-	}
-	configContent, err = io.ReadAll(configFile)
-	if err != nil {
-		logs.CtxError(context.Background(), "read config file failed: %v", err)
-		panic(err)
-	}
+
+	configContent = mustLoadConfigFile(configPath, "notification.json")
 	notificationConfig := new(NotificationConfig)
-	err = json.Unmarshal(configContent, &notificationConfig)
+	err = json.Unmarshal(configContent, notificationConfig)
 	if err != nil {
 		logs.CtxError(context.Background(), "unmarshal config file failed: %v", err)
 		panic(err)

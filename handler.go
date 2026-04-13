@@ -1,6 +1,9 @@
+//go:build localserver
+
 package main
 
 import (
+	"EmptyClassroom/bootstrap"
 	"EmptyClassroom/logs"
 	"EmptyClassroom/service"
 	"github.com/gin-gonic/gin"
@@ -9,10 +12,6 @@ import (
 func GetData(c *gin.Context) {
 	ctx := logs.GetContextFromGinContext(c)
 	logs.CtxInfo(ctx, "GetData")
-	service.GetData(ctx, c)
-}
-
-func Report(c *gin.Context) {
-	ctx := logs.GetContextFromGinContext(c)
-	service.Report(ctx, c)
+	response, status := service.GetDataResponse(ctx, bootstrap.NewSnapshotStore())
+	c.JSON(status, response)
 }

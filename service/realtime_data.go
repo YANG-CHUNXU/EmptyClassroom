@@ -1,48 +1,56 @@
 package service
 
 import (
-	"EmptyClassroom/cache"
 	"EmptyClassroom/config"
 	"EmptyClassroom/logs"
 	"EmptyClassroom/service/model"
 	"EmptyClassroom/utils"
 	"context"
+	"crypto/aes"
+	"encoding/base64"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"os"
 	"regexp"
 	"strconv"
 	"strings"
 	"time"
-
-	"github.com/gin-gonic/gin"
 )
 
 const (
-	LoginUrl = "http://jwglweixin.bupt.edu.cn/bjyddx/login"
-	QueryUrl = "http://jwglweixin.bupt.edu.cn/bjyddx/todayClassrooms?campusId=0"
+	LoginURL = "https://jwglweixin.bupt.edu.cn/bjyddx/login"
+	QueryURL = "https://jwglweixin.bupt.edu.cn/bjyddx/todayClassrooms"
 
 	LoginUsernameKey = "JW_USERNAME"
 	LoginPasswordKey = "JW_PASSWORD"
 
-	TodayCacheKey = "TODAY_CACHE"
+	loginAESKey = "qzkj1kjghd=876&*"
 )
 
 var (
-	Token string
+	Token            string
+	ErrLoginRejected = errors.New("login rejected")
 )
+
+const currentConfigVersion = "2026-04-13-shahe-building-split-v2"
 
 func Login(ctx context.Context) error {
 	userNo := os.Getenv(LoginUsernameKey)
 	pwd := os.Getenv(LoginPasswordKey)
+	encryptedPwd, err := encodeLoginPassword(pwd)
+	if err != nil {
+		logs.CtxError(ctx, "encrypt login password failed: %v", err)
+		return err
+	}
 	req := map[string]string{
 		"userNo":      userNo,
-		"pwd":         pwd,
+		"pwd":         encryptedPwd,
 		"encode":      "1",
 		"captchaData": "",
 		"codeVal":     "",
 	}
-	code, _, body, err := utils.HttpPostForm(ctx, LoginUrl, req)
+	code, _, body, err := utils.HttpPostForm(ctx, LoginURL, req)
 	if err != nil {
 		logs.CtxError(ctx, "login failed: %v", err)
 		return err
@@ -58,8 +66,12 @@ func Login(ctx context.Context) error {
 		return err
 	}
 	if resp.Code != "1" {
-		logs.CtxError(ctx, "login failed - code not 1: %v", err)
-		return errors.New("login failed")
+		msg := strings.TrimSpace(resp.Msg)
+		logs.CtxError(ctx, "login failed - code not 1: %s", msg)
+		if msg == "" {
+			msg = "login failed"
+		}
+		return fmt.Errorf("%w: %s", ErrLoginRejected, msg)
 	}
 	Token = resp.Data.Token
 	return nil
@@ -69,13 +81,14 @@ func QueryOne(ctx context.Context, id int) ([]model.JWClassInfo, error) {
 	errorTime := 0
 	err := Login(ctx)
 	// 重试3次
-	for err != nil && errorTime < 3 {
+	for shouldRetryRealtime(err) && errorTime < 3 {
 		time.Sleep(10 * time.Second)
 		err = Login(ctx)
 		errorTime++
 	}
 	if err != nil {
 		logs.CtxError(ctx, "login failed: %v", err)
+		return nil, err
 	}
 	if err == nil && errorTime > 0 {
 		logs.CtxWarn(ctx, "login retry success, error time: %v", errorTime)
@@ -83,7 +96,10 @@ func QueryOne(ctx context.Context, id int) ([]model.JWClassInfo, error) {
 	header := map[string]string{
 		"token": Token,
 	}
-	code, _, body, err := utils.HttpGetWithHeader(ctx, QueryUrl+strconv.FormatInt(int64(id), 10), header)
+	req := map[string]string{
+		"campusId": resolveRealtimeCampusID(id),
+	}
+	code, _, body, err := utils.HttpPostFormWithHeader(ctx, QueryURL, req, header)
 	if err != nil {
 		logs.CtxError(ctx, "query failed: %v", err)
 		return nil, err
@@ -105,10 +121,63 @@ func QueryOne(ctx context.Context, id int) ([]model.JWClassInfo, error) {
 	return resp.Data, nil
 }
 
+func encodeLoginPassword(pwd string) (string, error) {
+	quotedPwd, err := json.Marshal(pwd)
+	if err != nil {
+		return "", err
+	}
+	encrypted, err := aesEncryptECBPKCS7([]byte(quotedPwd), []byte(loginAESKey))
+	if err != nil {
+		return "", err
+	}
+	firstBase64 := base64.StdEncoding.EncodeToString(encrypted)
+	return base64.StdEncoding.EncodeToString([]byte(firstBase64)), nil
+}
+
+func aesEncryptECBPKCS7(plaintext []byte, key []byte) ([]byte, error) {
+	block, err := aes.NewCipher(key)
+	if err != nil {
+		return nil, err
+	}
+	blockSize := block.BlockSize()
+	padded := pkcs7Pad(plaintext, blockSize)
+	encrypted := make([]byte, len(padded))
+	for start := 0; start < len(padded); start += blockSize {
+		block.Encrypt(encrypted[start:start+blockSize], padded[start:start+blockSize])
+	}
+	return encrypted, nil
+}
+
+func pkcs7Pad(src []byte, blockSize int) []byte {
+	padding := blockSize - len(src)%blockSize
+	if padding == 0 {
+		padding = blockSize
+	}
+	padded := make([]byte, len(src)+padding)
+	copy(padded, src)
+	for i := len(src); i < len(padded); i++ {
+		padded[i] = byte(padding)
+	}
+	return padded
+}
+
+func resolveRealtimeCampusID(id int) string {
+	switch id {
+	case 1:
+		return "01"
+	case 2:
+		return "04"
+	default:
+		return fmt.Sprintf("%02d", id)
+	}
+}
+
 func QueryAll(ctx context.Context) (classInfo *model.ClassInfo, err error) {
 	classInfo = &model.ClassInfo{
-		UpdateAt:   time.Now(),
-		IsFallback: map[string]bool{},
+		UpdateAt:       time.Now(),
+		ConfigVersion:  currentConfigVersion,
+		IsFallback:     map[string]bool{},
+		FallbackReason: map[string]string{},
 	}
 	sysConfig := config.GetConfig()
 	for _, campus := range sysConfig.Campus {
@@ -121,7 +190,7 @@ func QueryAll(ctx context.Context) (classInfo *model.ClassInfo, err error) {
 			errorTime := 0
 			jwClassInfo, err := QueryOne(ctx, campus.Id)
 			// 重试3次
-			for err != nil && errorTime < 3 {
+			for shouldRetryRealtime(err) && errorTime < 3 {
 				time.Sleep(10 * time.Second)
 				jwClassInfo, err = QueryOne(ctx, campus.Id)
 				errorTime++
@@ -129,6 +198,7 @@ func QueryAll(ctx context.Context) (classInfo *model.ClassInfo, err error) {
 			if err != nil {
 				logs.CtxError(ctx, "query failed: %v", err)
 				classInfo.IsFallback[campus.Name] = true
+				classInfo.FallbackReason[campus.Name] = describeRealtimeFailure(err)
 			}
 			if err == nil && errorTime > 0 {
 				logs.CtxWarn(ctx, "query retry success, error time: %v", errorTime)
@@ -155,14 +225,52 @@ func QueryAll(ctx context.Context) (classInfo *model.ClassInfo, err error) {
 	} else {
 		classInfo.ClassTable = &sysConfig.ClassTable
 	}
-	oldClassInfoRaw, cacheTime, ok := cache.GetCacheWithExpiration(TodayCacheKey)
-	if ok {
-		if len(oldClassInfoRaw.(*model.ClassInfo).CampusInfoMap) > len(classInfo.CampusInfoMap) && cacheTime.After(time.Now().Add(10*time.Minute)) {
-			return oldClassInfoRaw.(*model.ClassInfo), nil
-		}
-	}
-	cache.SetCache(TodayCacheKey, classInfo, 60*time.Minute)
+	classInfo.EmptyReason = buildEmptyReason(classInfo, sysConfig.ClassTable)
 	return classInfo, nil
+}
+
+func shouldRetryRealtime(err error) bool {
+	return err != nil && !errors.Is(err, ErrLoginRejected)
+}
+
+func describeRealtimeFailure(err error) string {
+	if err == nil {
+		return ""
+	}
+	if errors.Is(err, ErrLoginRejected) {
+		return "实时教务登录失败，请检查服务端教务账号配置"
+	}
+	return "实时教务查询失败，请稍后重试"
+}
+
+func buildEmptyReason(classInfo *model.ClassInfo, classTableConfig config.ClassTableConfig) string {
+	if classInfo == nil || len(classInfo.CampusInfoMap) > 0 {
+		return ""
+	}
+	if !classTableConfig.IsAvailable {
+		if len(classInfo.IsFallback) > 0 {
+			return "当前暂无可用教室数据：实时教务查询失败，且当前未启用课表数据兜底。"
+		}
+		return "当前暂无可用教室数据：当前仓库未启用课表数据兜底。"
+	}
+	if len(classInfo.IsFallback) > 0 {
+		return "当前暂无可用教室数据：实时教务查询失败。"
+	}
+	return "当前暂无可用教室数据。"
+}
+
+func splitShaheTeachingBuilding(campusName string, buildingName string, classroomName string) string {
+	if campusName != "沙河" || buildingName != "教学实验综合楼" || classroomName == "" {
+		return buildingName
+	}
+	switch classroomName[0] {
+	case 'N':
+		return "N"
+	case 'S':
+		return "S"
+	default:
+		return buildingName
+	}
 }
 
 func ProcessJWClassInfo(ctx context.Context, jwClassInfo []model.JWClassInfo, classInfo *model.ClassInfo, campusConfig config.CampusConfig) error {
@@ -199,6 +307,7 @@ func ProcessJWClassInfo(ctx context.Context, jwClassInfo []model.JWClassInfo, cl
 				logs.CtxWarn(ctx, "classroom format error: %v", classroom)
 				continue
 			}
+			buildingName = splitShaheTeachingBuilding(campusConfig.Name, buildingName, classroomInfo.Name)
 			classroomInfo.Size, _ = strconv.ParseInt(strings.Split(strings.Split(classroom, "(")[1], ")")[0], 10, 32)
 			classroomInfo.CanTrust = true
 			if _, ok := campusInfo.BuildingIdMap[buildingName]; !ok {
@@ -288,6 +397,7 @@ func ProcessClassTableInfo(ctx context.Context, classInfo *model.ClassInfo, camp
 			logs.CtxWarn(ctx, "classroom format error: %v", classItemInfo.Name)
 			continue
 		}
+		buildingName = splitShaheTeachingBuilding(campusName, buildingName, classroomName)
 		if _, ok := campusInfo.BuildingIdMap[buildingName]; !ok {
 			campusInfo.BuildingIdMap[buildingName] = campusInfo.MaxBuildingId
 			campusInfo.BuildingInfoMap[campusInfo.MaxBuildingId] = &model.BuildingInfo{
@@ -341,31 +451,4 @@ func ProcessClassTableInfo(ctx context.Context, classInfo *model.ClassInfo, camp
 	}
 	classInfo.CampusInfoMap[campusName] = &campusInfo
 	return nil
-}
-
-func GetData(ctx context.Context, c *gin.Context) {
-	classInfoRaw, ok := cache.GetCache(TodayCacheKey)
-	if ok {
-		classInfo := classInfoRaw.(*model.ClassInfo)
-		c.JSON(200, gin.H{
-			"code": 0,
-			"data": classInfo,
-		})
-		return
-	} else {
-		classInfo, err := QueryAll(ctx)
-		if err != nil {
-			c.JSON(500, gin.H{
-				"code": 500,
-				"msg":  "query failed",
-				"data": nil,
-			})
-			return
-		}
-		c.JSON(200, gin.H{
-			"code": 0,
-			"data": classInfo,
-		})
-		return
-	}
 }

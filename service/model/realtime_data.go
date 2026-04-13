@@ -56,9 +56,12 @@ type CampusInfo struct {
 }
 
 type ClassInfo struct {
-	CampusInfoMap map[string]*CampusInfo     `json:"campus_info_map"`
-	ClassTable    *config.ClassTableConfig   `json:"class_table"`
-	UpdateAt      time.Time                  `json:"update_at"`
-	Notification  *config.NotificationConfig `json:"notification"`
-	IsFallback    map[string]bool            `json:"is_fallback"`
+	CampusInfoMap  map[string]*CampusInfo     `json:"campus_info_map"`
+	ClassTable     *config.ClassTableConfig   `json:"class_table"`
+	UpdateAt       time.Time                  `json:"update_at"`
+	ConfigVersion  string                     `json:"config_version,omitempty"`
+	Notification   *config.NotificationConfig `json:"notification"`
+	IsFallback     map[string]bool            `json:"is_fallback"`
+	FallbackReason map[string]string          `json:"fallback_reason,omitempty"`
+	EmptyReason    string                     `json:"empty_reason,omitempty"`
 }

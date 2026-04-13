@@ -12,8 +12,13 @@ function BuildingPicker(props) {
     return null;
   }
 
-  const building_name_id_map =
-    props.todayData.data.campus_info_map[props.selectedCampus].building_id_map;
+  const campusInfo =
+    props.todayData.data?.campus_info_map?.[props.selectedCampus];
+  if (!campusInfo) {
+    return null;
+  }
+
+  const building_name_id_map = campusInfo.building_id_map ?? {};
 
   const options = [];
   for (const [key, value] of Object.entries(building_name_id_map)) {

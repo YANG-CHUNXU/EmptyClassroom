@@ -1,0 +1,17 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": null,
+  "buildCommand": "cd frontend && corepack enable && corepack prepare pnpm@8.15.8 --activate && corepack pnpm --version && corepack pnpm install --frozen-lockfile && corepack pnpm build",
+  "outputDirectory": "frontend/dist",
+  "functions": {
+    "api/**/*.go": {
+      "maxDuration": 60
+    }
+  },
+  "crons": [
+    {
+      "path": "/api/cron/refresh",
+      "schedule": "0 0 * * *"
+    }
+  ]
+}

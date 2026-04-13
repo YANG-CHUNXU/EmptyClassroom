@@ -21,9 +21,9 @@
 go.work
 
 run_log
-
-.ec.gob
+.empty-classroom-snapshot.json
 
 .idea
 
 config/*.json
+.vercel

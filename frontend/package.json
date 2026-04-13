@@ -2,6 +2,7 @@
   "name": "my-vue-app",
   "private": true,
   "version": "0.0.0",
+  "packageManager": "pnpm@8.15.8",
   "type": "module",
   "scripts": {
     "dev": "vite",

@@ -52,6 +52,34 @@ func HttpPostForm(ctx context.Context, url string, data map[string]string) (int,
 	return statusCode, header, body, nil
 }
 
+func HttpPostFormWithHeader(ctx context.Context, url string, data map[string]string, header map[string]string) (int, http.Header, []byte, error) {
+	req, err := http.NewRequest("POST", url, nil)
+	if err != nil {
+		logs.CtxError(ctx, "http post form with header error: %v", err)
+		return 0, nil, nil, err
+	}
+	q := req.URL.Query()
+	for k, v := range data {
+		q.Add(k, v)
+	}
+	req.URL.RawQuery = q.Encode()
+	for k, v := range header {
+		req.Header.Add(k, v)
+	}
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		logs.CtxError(ctx, "http post form with header error: %v", err)
+		return 0, nil, nil, err
+	}
+	defer resp.Body.Close()
+
+	statusCode := resp.StatusCode
+	body, _ := io.ReadAll(resp.Body)
+	return statusCode, resp.Header, body, nil
+}
+
 func HttpGetWithHeader(ctx context.Context, url string, header map[string]string) (int, http.Header, []byte, error) {
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {

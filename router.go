@@ -1,3 +1,5 @@
+//go:build localserver
+
 package main
 
 import (
@@ -40,6 +42,5 @@ func SetRouter(r *gin.Engine) {
 	apiGroup := r.Group("/api").Use(logs.SetNewContextForGinContext)
 	{
 		apiGroup.GET("/get_data", GetData)
-		apiGroup.POST("/report", Report)
 	}
 }
