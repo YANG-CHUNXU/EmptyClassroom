@@ -43,7 +43,7 @@ body.dark {
 
 .ui-card {
   width: min(92vw, 400px);
-  margin-bottom: 15px;
+  margin: 0 auto 15px;
   background: var(--ui-surface);
   border: 1px solid var(--ui-border);
   box-shadow: var(--ui-shadow);

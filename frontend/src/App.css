@@ -3,6 +3,9 @@
     text-align: center;
     padding: 24px 16px 40px;
     color: var(--ui-text);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
     background:
         radial-gradient(circle at top, rgba(245, 194, 95, 0.16), transparent 28%),
         linear-gradient(180deg, rgba(255, 255, 255, 0.65), transparent 35%),
@@ -14,12 +17,12 @@
     width: 7em;
     margin: 0 auto;
     display: block;
-    margin-top: -2em;
-    margin-bottom: -2em;
+    margin-top: 0;
+    margin-bottom: 6px;
 }
 
 .app-title {
-    margin: 0 0 15px;
+    margin: 0 0 22px;
     font-size: clamp(1.8rem, 4vw, 2.25rem);
     line-height: 1.2;
 }
