@@ -99,11 +99,7 @@ function App() {
             setCanSelectAllDay={setCanSelectAllDay}
             useClassTable={useClassTable}
             setUseClassTable={setUseClassTable}
-          />
-          <DatePicker
-            todayData={resp}
             selectedDate={selectedDate}
-            setSelectedDate={setSelectedDate}
           />
           <BuildingPicker
             todayData={resp}

@@ -82,6 +82,7 @@ function CampusButtonGroup(props) {
         }}
         buttonStyle="solid"
         size="middle"
+        style={{ flexShrink: 0 }}
       >
         {campusList.map((campus) => {
           return (
@@ -91,13 +92,16 @@ function CampusButtonGroup(props) {
           );
         })}
       </Radio.Group>
-      <Button
-        style={{
-          marginLeft: "10px",
-        }}
-        icon={<SettingOutlined />}
-        onClick={OpenSettingModal}
-      />
+      <div style={{ flex: 1, display: "flex", justifyContent: "center", alignItems: "center" }}>
+        <Typography.Text style={{ fontSize: "16px", fontWeight: 500, marginRight: "10px" }}>
+          {props.selectedDate ? props.selectedDate.format("YYYY-MM-DD") : ""}
+        </Typography.Text>
+        <Button
+          icon={<SettingOutlined />}
+          onClick={OpenSettingModal}
+          style={{ flexShrink: 0 }}
+        />
+      </div>
       <Modal
         title="设置"
         open={openSettingModal}
@@ -197,10 +201,33 @@ function CampusButtonGroup(props) {
               lineHeight: "2em",
             }}
           >
-            项目已开源：
+            声明：本项目是基于原项目 vibe coding 生成的。
+          </div>
+          <div
+            style={{
+              lineHeight: "2em",
+            }}
+          >
+            原项目已开源：
             <Button
               onClick={() =>
                 window.open("https://github.com/Jraaay/EmptyClassroom")
+              }
+              icon={<GithubOutlined />}
+              size="small"
+            >
+              Github
+            </Button>
+          </div>
+          <div
+            style={{
+              lineHeight: "2em",
+            }}
+          >
+            本项目已开源：
+            <Button
+              onClick={() =>
+                window.open("https://github.com/YANG-CHUNXU/EmptyClassroom")
               }
               icon={<GithubOutlined />}
               size="small"
@@ -225,6 +252,7 @@ CampusButtonGroup.propTypes = {
   setCanSelectAllDay: PropTypes.func,
   useClassTable: PropTypes.bool,
   setUseClassTable: PropTypes.func,
+  selectedDate: PropTypes.object,
 };
 
 export default CampusButtonGroup;

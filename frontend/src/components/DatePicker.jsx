@@ -1,5 +1,5 @@
 import PropTypes from "prop-types";
-import { DatePicker as AntdDatePicker } from "antd";
+import { Typography } from "antd";
 import "./DatePicker.css";
 
 function DatePicker(props) {
@@ -8,35 +8,9 @@ function DatePicker(props) {
   }
   return (
     <div className="date-picker">
-      <AntdDatePicker
-        value={props.selectedDate}
-        allowClear={false}
-        inputReadOnly={true}
-        onChange={(date) => {
-          props.setSelectedDate(date);
-        }}
-        disabled={props.todayData.data?.class_table == null}
-        disabledDate={(_date) => {
-          const date = _date.toDate();
-          date.setHours(0, 0, 0, 0);
-          if (props.todayData.data?.class_table == null) {
-            return true;
-          }
-          const startWeek = new Date(
-            props.todayData.data?.class_table.start_week
-          );
-          startWeek.setHours(0, 0, 0, 0);
-          const endWeek = new Date(props.todayData.data?.class_table.end_week);
-          endWeek.setHours(0, 0, 0, 0);
-          if (date < startWeek || date > endWeek) {
-            return true;
-          }
-        }}
-        popupStyle={{
-          position: "absolute",
-          left: "calc(50% - 144px)",
-        }}
-      />
+      <Typography.Text style={{ fontSize: "16px", fontWeight: 500 }}>
+        {props.selectedDate ? props.selectedDate.format("YYYY-MM-DD") : ""}
+      </Typography.Text>
     </div>
   );
 }
