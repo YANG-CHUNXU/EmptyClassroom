@@ -1,5 +1,5 @@
 import PropTypes from "prop-types";
-import { Button, Card } from "antd";
+import SurfaceCard from "./ui/SurfaceCard";
 import "./BuildingPicker.css";
 
 function BuildingPicker(props) {
@@ -36,23 +36,14 @@ function BuildingPicker(props) {
   });
 
   return (
-    <Card
-      style={{
-        maxWidth: 400,
-        width: "90%",
-        boxShadow: "0 12px 32px 4px #0000000a, 0 8px 20px #00000014",
-      }}
-      className="building-picker"
-      bodyStyle={{
-        maxWidth: "350px",
-      }}
-    >
+    <SurfaceCard className="building-picker">
       {options.map((item) => (
-        <Button
+        <button
+          type="button"
           key={props.selectedCampus + item.value}
-          type={
-            props.selectedBuildings.includes(item.value) ? "primary" : "outline"
-          }
+          className={`building-picker__button ${
+            props.selectedBuildings.includes(item.value) ? "primary" : ""
+          }`}
           onClick={() => {
             if (props.selectedBuildings.includes(item.value)) {
               props.setSelectedBuildings(
@@ -65,15 +56,11 @@ function BuildingPicker(props) {
               ]);
             }
           }}
-          style={{
-            borderRadius: "0px",
-            minWidth: "6em",
-          }}
         >
           {item.label}
-        </Button>
+        </button>
       ))}
-    </Card>
+    </SurfaceCard>
   );
 }
 

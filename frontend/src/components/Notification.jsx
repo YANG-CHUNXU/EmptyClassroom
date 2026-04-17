@@ -1,54 +1,20 @@
 import PropTypes from "prop-types";
-import { notification } from "antd";
-import { Button } from "antd";
-import { InfoCircleOutlined } from "@ant-design/icons";
-import React, { useEffect, useMemo, useCallback } from "react";
+import { useEffect, useState } from "react";
+import Modal from "./ui/Modal";
 import "./Notification.css";
 
 function Notification(props) {
-  const [api, contextHolder] = notification.useNotification();
+  const [open, setOpen] = useState(false);
 
-  const ShowNotification = useCallback(
-    (notification) => {
-      api.info({
-        message: notification.title,
-        description: (
-          <Context.Consumer>
-            {() => (
-              <div
-                dangerouslySetInnerHTML={{
-                  __html: notification.content,
-                }}
-              ></div>
-            )}
-          </Context.Consumer>
-        ),
-        duration: notification.duration == 0 ? null : notification.duration,
-      });
-    },
-    [api]
-  );
-  const Context = React.createContext({ name: "Default" });
-  const contextValue = useMemo(
-    () => ({ content: props.todayData.data?.content }),
-    [props.todayData.data?.content]
-  );
   useEffect(() => {
     if (
       props.todayData.code == 0 &&
-      props.todayData.data?.notification != undefined
+      props.todayData.data?.notification != undefined &&
+      props.todayData.data.notification.showNotification
     ) {
-      if (props.todayData.data.notification.showNotification) {
-        setTimeout(() => {
-          ShowNotification(props.todayData.data.notification);
-        }, 100);
-      }
+      setOpen(true);
     }
-  }, [
-    ShowNotification,
-    props.todayData.code,
-    props.todayData.data?.notification,
-  ]);
+  }, [props.todayData.code, props.todayData.data?.notification]);
 
   if (props.todayData.code != 0) {
     return null;
@@ -56,18 +22,27 @@ function Notification(props) {
 
   if (props.todayData.code == 0 && props.todayData.data.notification) {
     return (
-      <Context.Provider value={contextValue}>
-        {contextHolder}
-        <Button
-          icon={<InfoCircleOutlined />}
-          onClick={() => {
-            ShowNotification(props.todayData.data.notification);
-          }}
+      <>
+        <button
+          type="button"
+          onClick={() => setOpen(true)}
           className="notification-button"
         >
           {props.todayData.data.notification.title}
-        </Button>
-      </Context.Provider>
+        </button>
+        <Modal
+          open={open}
+          onClose={() => setOpen(false)}
+          title={props.todayData.data.notification.title}
+        >
+          <div
+            className="notification-content"
+            dangerouslySetInnerHTML={{
+              __html: props.todayData.data.notification.content,
+            }}
+          />
+        </Modal>
+      </>
     );
   }
   return null;

@@ -1,3 +1,24 @@
 .building-picker {
-    margin-bottom: 15px;
+  margin-bottom: 15px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+}
+
+.building-picker__button {
+  border: 1px solid var(--ui-border);
+  background: var(--ui-surface-strong);
+  color: var(--ui-text);
+  border-radius: 12px;
+  min-width: 6em;
+  min-height: 38px;
+  padding: 0 14px;
+  cursor: pointer;
+}
+
+.building-picker__button.primary {
+  background: var(--ui-primary);
+  color: #fff;
+  border-color: transparent;
 }

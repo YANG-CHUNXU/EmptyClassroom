@@ -1,7 +1,7 @@
 import PropTypes from "prop-types";
-import { Card, Button } from "antd";
 import dayjs from "dayjs";
 import { useEffect } from "react";
+import SurfaceCard from "./ui/SurfaceCard";
 import "./ClassTimePicker.css";
 
 const CLASSES = [
@@ -86,16 +86,16 @@ function ClassTimePicker(props) {
 
   function fillZero(x) {
     if (x < 10) {
-      return "0" + x;
+      return `0${x}`;
     }
     return x;
   }
 
   const options = [];
   const now = new Date();
-  const now_hour = fillZero(now.getHours());
-  const now_minute = fillZero(now.getMinutes());
-  const currentTime = `${now_hour}:${now_minute}`;
+  const nowHour = fillZero(now.getHours());
+  const nowMinute = fillZero(now.getMinutes());
+  const currentTime = `${nowHour}:${nowMinute}`;
   const isSelectedToday = selectedDate.isSame(dayjs(), "day");
 
   for (let i = 0; i <= 13; i++) {
@@ -178,30 +178,15 @@ function ClassTimePicker(props) {
   }
 
   return (
-    <Card
-      className="class-time-picker"
-      style={{
-        maxWidth: 400,
-        width: "90%",
-        boxShadow: "0 12px 32px 4px #0000000a, 0 8px 20px #00000014",
-      }}
-      bodyStyle={{
-        maxWidth: "300px",
-      }}
-    >
-      <div
-        style={{
-          display: "flex",
-          flexWrap: "wrap",
-          justifyContent: "center",
-        }}
-      >
+    <SurfaceCard className="class-time-picker">
+      <div className="class-time-picker__grid">
         {options.map((x) => (
-          <Button
+          <button
+            type="button"
             key={x.value}
-            type={
+            className={`class-time-picker__button ${
               selectedClassTimes.includes(x.value) ? "primary" : "outline"
-            }
+            }`}
             onClick={() => {
               if (selectedClassTimes.includes(x.value)) {
                 setSelectedClassTimes(selectedClassTimes.filter((y) => y != x.value));
@@ -210,59 +195,36 @@ function ClassTimePicker(props) {
               }
             }}
             style={{
-              borderRadius: "0px",
-              width: "45px",
-              margin: "2px",
-              height: showClassTime ? "45px" : "30px",
-              padding: "0px",
-              color: x.disabled
-                ? isDark
-                  ? "#ffffff73"
-                  : "#00000073"
-                : null,
+              height: showClassTime ? "52px" : "36px",
+              color: x.disabled ? (isDark ? "#ffffff73" : "#00000073") : undefined,
             }}
             disabled={x.disabled}
           >
             <div>
               {showClassTime ? (
-                <div
-                  style={{
-                    fontSize: "0.7em",
-                    marginBottom: "-0.5em",
-                  }}
-                >
+                <div className="class-time-picker__tiny class-time-picker__tiny--top">
                   {CLASS_START_TIME[x.label - 1]}
                 </div>
               ) : null}
               {x.label}
               {showClassTime ? (
-                <div
-                  style={{
-                    fontSize: "0.7em",
-                    marginTop: "-0.5em",
-                  }}
-                >
+                <div className="class-time-picker__tiny class-time-picker__tiny--bottom">
                   {CLASS_TIME[x.label - 1]}
                 </div>
               ) : null}
             </div>
-          </Button>
+          </button>
         ))}
-        <Button
-          type={isAllChecked() ? "primary" : "outline"}
+        <button
+          type="button"
+          className={`class-time-picker__button ${isAllChecked() ? "primary" : "outline"}`}
           onClick={onCheckAllChange}
-          style={{
-            borderRadius: "0px",
-            width: "45px",
-            margin: "2px",
-            height: showClassTime ? "45px" : "30px",
-            padding: "0px",
-          }}
+          style={{ height: showClassTime ? "52px" : "36px" }}
         >
           {isAllChecked() ? "全不选" : "全选"}
-        </Button>
+        </button>
       </div>
-    </Card>
+    </SurfaceCard>
   );
 }
 

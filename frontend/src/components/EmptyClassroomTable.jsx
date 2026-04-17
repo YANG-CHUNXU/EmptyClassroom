@@ -1,10 +1,11 @@
 import PropTypes from "prop-types";
-import { Empty, Card, Table, Button, Tag, Modal, Descriptions } from "antd";
-import { QuestionCircleOutlined } from "@ant-design/icons";
 import { useEffect, useMemo, useState } from "react";
+import dayjs from "dayjs";
+import Modal from "./ui/Modal";
+import EmptyState from "./ui/EmptyState";
+import SurfaceCard from "./ui/SurfaceCard";
 import "./EmptyClassroomTable.css";
 import CalculateEmptyClassroom from "../utils/calculte";
-import dayjs from "dayjs";
 
 function formatEmptyTimeList(emptyTimeList) {
   const classTime = [
@@ -45,7 +46,7 @@ function formatEmptyTimeList(emptyTimeList) {
   if (emptyTimeList[0] == 0) {
     emptyTimeListStr += "00:00";
   } else {
-    emptyTimeListStr += "00:00-08:00, " + classTime[emptyTimeList[0] - 1];
+    emptyTimeListStr += `00:00-08:00, ${classTime[emptyTimeList[0] - 1]}`;
   }
 
   for (let i = 1; i < emptyTimeList.length; i++) {
@@ -54,16 +55,14 @@ function formatEmptyTimeList(emptyTimeList) {
     }
 
     emptyTimeListStr +=
-      "-" +
-      classStartTime[emptyTimeList[i - 1] + 1] +
-      ", " +
+      `-${classStartTime[emptyTimeList[i - 1] + 1]}, ` +
       classTime[emptyTimeList[i] - 1];
   }
 
   if (emptyTimeList[emptyTimeList.length - 1] != 13) {
     emptyTimeListStr +=
-      "-" + classStartTime[emptyTimeList[emptyTimeList.length - 1] + 1];
-    emptyTimeListStr += ", " + classTime[classTime.length - 1] + "-24:00";
+      `-${classStartTime[emptyTimeList[emptyTimeList.length - 1] + 1]}`;
+    emptyTimeListStr += `, ${classTime[classTime.length - 1]}-24:00`;
   } else {
     emptyTimeListStr += "-24:00";
   }
@@ -81,9 +80,7 @@ function EmptyClassroomTable(props) {
     setIsError,
     useClassTable,
   } = props;
-  const [modalTitle, setModalTitle] = useState("");
-  const [modalContent, setModalContent] = useState([]);
-  const [openModal, setOpenModal] = useState(false);
+  const [selectedClassroom, setSelectedClassroom] = useState(null);
 
   const { emptyClassroom, hasCalculationError } = useMemo(() => {
     if (
@@ -130,11 +127,7 @@ function EmptyClassroomTable(props) {
     }
   }, [hasCalculationError, setIsError]);
 
-  if (todayData.code != 0) {
-    return null;
-  }
-
-  if (selectedCampus == "") {
+  if (todayData.code != 0 || selectedCampus == "") {
     return null;
   }
 
@@ -144,175 +137,114 @@ function EmptyClassroomTable(props) {
     emptyClassroom.length == 0
   ) {
     return (
-      <Card
-        className="empty-classroom-table"
-        style={{
-          maxWidth: 400,
-          width: "90%",
-          boxShadow: "0 12px 32px 4px #0000000a, 0 8px 20px #00000014",
-        }}
-        bodyStyle={{
-          maxWidth: "300px",
-        }}
-      >
-        <Empty
-          image={Empty.PRESENTED_IMAGE_SIMPLE}
-          description={
+      <SurfaceCard className="empty-classroom-table">
+        <EmptyState
+          title={
             selectedBuildings.length == 0
               ? selectedClassTimes.length == 0
                 ? "请选择教学楼和上课时间"
                 : "请选择教学楼"
               : selectedClassTimes.length == 0
-              ? "请选择上课时间"
-              : "没有空教室了😭"
+                ? "请选择上课时间"
+                : "没有空教室了"
           }
         />
-      </Card>
+      </SurfaceCard>
     );
   }
 
-  function ShowClassroomEmptyInfo(classroomInfo) {
-    const data = [
-      {
-        key: "座位数",
-        value: classroomInfo.size,
-      },
-      {
-        key: "类型",
-        value: classroomInfo.type,
-      },
-      {
-        key: "空闲时间",
-        value: formatEmptyTimeList(classroomInfo.empty_class_time),
-      },
-      {
-        key: "数据来源",
-        value: classroomInfo.can_trust ? "教务（可信）" : "课表（参考）",
-      },
-    ];
-    setModalTitle(classroomInfo.name);
-    setModalContent(data);
-    setOpenModal(true);
-  }
-
-  const columns = [
-    {
-      title: "教室",
-      key: "name",
-      dataIndex: "name",
-      align: "center",
-      render: (text, record) => {
-        return (
-          <span style={{ display: "flex", justifyContent: "center" }}>
-            <Button
-              size="small"
-              onClick={() => {
-                ShowClassroomEmptyInfo(record);
-              }}
-            >
-              {text}
-            </Button>
-          </span>
-        );
-      },
-    },
-    {
-      title: "座位数",
-      key: "size",
-      dataIndex: "size",
-      align: "center",
-    },
-    {
-      title: "类型",
-      key: "type",
-      dataIndex: "type",
-      align: "center",
-    },
-    {
-      title: (
-        <>
-          来源
-          <Button
-            size="small"
-            type="text"
-            icon={<QuestionCircleOutlined />}
-            onClick={() => {
-              window.open(
-                "https://jraaaaay.feishu.cn/docx/HAu9dbYF1oRb4nxFd7RcugMTnHj#part-Bwf5dnkr0o3G6ExcedZcLzaSnBe"
-              );
-            }}
-          />
-        </>
-      ),
-      key: "can_trust",
-      dataIndex: "can_trust",
-      align: "center",
-      render: (text) => {
-        return text ? (
-          <Tag color="green" bordered={false}>
-            教务
-          </Tag>
-        ) : (
-          <Tag color="red" bordered={false}>
-            课表
-          </Tag>
-        );
-      },
-    },
-  ];
+  const rows =
+    !useClassTable &&
+    selectedCampus != "海南" &&
+    selectedDate.isSame(dayjs(), "day") &&
+    (todayData.data.is_fallback == undefined ||
+      !todayData.data.is_fallback[selectedCampus])
+      ? emptyClassroom.filter((item) => item.can_trust)
+      : emptyClassroom;
 
   return (
     <div className="empty-classroom-table">
-      <Card
-        style={{
-          maxWidth: 400,
-          width: "90%",
-          boxShadow: "0 12px 32px 4px #0000000a, 0 8px 20px #00000014",
-        }}
-        bodyStyle={{
-          padding: "0px",
-        }}
-      >
-        <Table
-          dataSource={
-            !useClassTable &&
-            !(selectedCampus == "海南") &&
-            selectedDate.isSame(dayjs(), "day") &&
-            (todayData.data.is_fallback == undefined ||
-              !todayData.data.is_fallback[selectedCampus])
-              ? emptyClassroom.filter((item) => item.can_trust)
-              : emptyClassroom
-          }
-          columns={columns}
-          pagination={false}
-          bordered={false}
-          tableLayout="auto"
-          size="small"
-          rowKey={(record) => record.name}
-          style={{
-            width: "100%",
-          }}
-        />
-      </Card>
-      <Modal
-        title={modalTitle}
-        open={openModal}
-        footer={null}
-        onCancel={() => {
-          setOpenModal(false);
-        }}
-      >
-        <div>
-          <Descriptions column={1} size="small" layout="vertical">
-            {modalContent.map((item, index) => {
-              return (
-                <Descriptions.Item key={index} label={item.key}>
-                  {item.value}
-                </Descriptions.Item>
-              );
-            })}
-          </Descriptions>
+      <SurfaceCard className="empty-classroom-table__card" padded={false}>
+        <div className="empty-classroom-table__scroll">
+          <table className="empty-classroom-table__table">
+            <thead>
+              <tr>
+                <th>教室</th>
+                <th>座位数</th>
+                <th>类型</th>
+                <th>
+                  <span className="empty-classroom-table__header-inline">
+                    来源
+                    <button
+                      type="button"
+                      className="ui-button ui-button--link"
+                      onClick={() => {
+                        window.open(
+                          "https://jraaaaay.feishu.cn/docx/HAu9dbYF1oRb4nxFd7RcugMTnHj#part-Bwf5dnkr0o3G6ExcedZcLzaSnBe"
+                        );
+                      }}
+                    >
+                      说明
+                    </button>
+                  </span>
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((record) => (
+                <tr key={record.name}>
+                  <td>
+                    <button
+                      type="button"
+                      className="ui-button ui-button--link"
+                      onClick={() => setSelectedClassroom(record)}
+                    >
+                      {record.name}
+                    </button>
+                  </td>
+                  <td>{record.size}</td>
+                  <td>{record.type}</td>
+                  <td>
+                    <span
+                      className={`ui-pill ${
+                        record.can_trust ? "ui-pill--success" : "ui-pill--danger"
+                      }`}
+                    >
+                      {record.can_trust ? "教务" : "课表"}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
+      </SurfaceCard>
+
+      <Modal
+        open={selectedClassroom != null}
+        title={selectedClassroom?.name || ""}
+        onClose={() => setSelectedClassroom(null)}
+      >
+        {selectedClassroom ? (
+          <dl className="empty-classroom-table__details">
+            <div>
+              <dt>座位数</dt>
+              <dd>{selectedClassroom.size}</dd>
+            </div>
+            <div>
+              <dt>类型</dt>
+              <dd>{selectedClassroom.type}</dd>
+            </div>
+            <div>
+              <dt>空闲时间</dt>
+              <dd>{formatEmptyTimeList(selectedClassroom.empty_class_time)}</dd>
+            </div>
+            <div>
+              <dt>数据来源</dt>
+              <dd>{selectedClassroom.can_trust ? "教务（可信）" : "课表（参考）"}</dd>
+            </div>
+          </dl>
+        ) : null}
       </Modal>
     </div>
   );

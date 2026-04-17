@@ -1,3 +1,8 @@
 .global-empty {
-    margin-bottom: 15px;
+  margin-bottom: 15px;
+}
+
+.global-empty__fallback {
+  margin-top: 12px;
+  text-align: left;
 }

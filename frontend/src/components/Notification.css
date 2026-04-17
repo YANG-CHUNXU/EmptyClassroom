@@ -1,3 +1,20 @@
 .notification-button {
-    margin-bottom: 15px;
+  margin-bottom: 15px;
+  min-height: 40px;
+  border: 1px solid var(--ui-primary-soft);
+  background: var(--ui-primary-soft);
+  color: var(--ui-text);
+  border-radius: 999px;
+  padding: 0 16px;
+  cursor: pointer;
+}
+
+.notification-content {
+  line-height: 1.8;
+  color: var(--ui-text-muted);
+  text-align: left;
+}
+
+.notification-content a {
+  color: var(--ui-primary);
 }

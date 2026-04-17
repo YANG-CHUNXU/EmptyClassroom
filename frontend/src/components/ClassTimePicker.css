@@ -1,3 +1,38 @@
 .class-time-picker {
-    margin-bottom: 15px;
+  margin-bottom: 15px;
+}
+
+.class-time-picker__grid {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+}
+
+.class-time-picker__button {
+  width: 52px;
+  padding: 0;
+  border-radius: 12px;
+  border: 1px solid var(--ui-border);
+  background: var(--ui-surface-strong);
+  color: var(--ui-text);
+  cursor: pointer;
+}
+
+.class-time-picker__button.primary {
+  background: var(--ui-primary);
+  color: #fff;
+  border-color: transparent;
+}
+
+.class-time-picker__tiny {
+  font-size: 0.7em;
+}
+
+.class-time-picker__tiny--top {
+  margin-bottom: -0.5em;
+}
+
+.class-time-picker__tiny--bottom {
+  margin-top: -0.5em;
 }

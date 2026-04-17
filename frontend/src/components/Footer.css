@@ -1,0 +1,8 @@
+.footer {
+  color: var(--ui-text-muted);
+  line-height: 1.8;
+}
+
+.footer__link {
+  margin: 0 4px;
+}

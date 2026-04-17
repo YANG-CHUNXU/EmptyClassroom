@@ -1,24 +1,27 @@
-import { Typography, Button } from "antd";
-import { GithubOutlined } from "@ant-design/icons";
+import "./Footer.css";
 
 function Footer() {
-  const { Text } = Typography;
   return (
-    <Text>
+    <div className="footer">
       © 2022-2026 YANG-CHUNXU
-      <Button
+      <button
+        type="button"
+        className="ui-button ui-button--link footer__link"
         onClick={() => window.open("https://github.com/YANG-CHUNXU/EmptyClassroom")}
-        type="text"
-        icon={<GithubOutlined />}
-      ></Button>
+      >
+        Github
+      </button>
       <br />
-      基于 <Button
+      基于
+      <button
+        type="button"
+        className="ui-button ui-button--link footer__link"
         onClick={() => window.open("https://github.com/Jraaay/EmptyClassroom")}
-        type="text"
-        icon={<GithubOutlined />}
-        style={{ padding: "0 4px" }}
-      >原项目</Button> vibe coding 生成
-    </Text>
+      >
+        原项目
+      </button>
+      vibe coding 生成
+    </div>
   );
 }
 
