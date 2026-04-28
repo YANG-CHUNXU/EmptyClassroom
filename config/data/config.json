@@ -1,0 +1,56 @@
+{
+  "class_table": {
+    "start_week": "2099-01-01",
+    "end_week": "2099-01-01",
+    "unable_reason": "当前仓库未内置课表数据，Vercel 默认仅提供实时教务数据。",
+    "is_available": false
+  },
+  "campus": [
+    {
+      "name": "西土城",
+      "id": 1,
+      "has_realtime": true,
+      "replace_regex": [
+        { "regex": "主-(.+)", "replace": "主楼-$1" },
+        { "regex": "(\\d)-(.+)", "replace": "教$1-$2" },
+        { "regex": "动画室", "replace": "教2-动画室" },
+        { "regex": "新科研-(.+)", "replace": "新科研楼-$1" },
+        { "regex": "明-(.+)", "replace": "明光楼-$1" },
+        { "regex": "明光楼(\\d.+)", "replace": "明光楼-$1" },
+        { "regex": "经管楼(\\d.+)", "replace": "经管楼-$1" },
+        { "regex": "(东.)-(\\d+)", "replace": "本部图书馆-$1$2" },
+        { "regex": "图书馆一层", "replace": "本部图书馆-一层" },
+        { "regex": "工程管理仿真中心", "replace": "学10-工程管理仿真中心" }
+      ]
+    },
+    {
+      "name": "沙河",
+      "id": 2,
+      "has_realtime": true,
+      "replace_regex": [
+        { "regex": "（.*", "replace": "" },
+        { "regex": "^([NS])(\\d+)$", "replace": "$1-$2" },
+        { "regex": "图-(.+)", "replace": "沙河图书馆-$1" },
+        { "regex": "沙河图书馆东配楼", "replace": "沙河图书馆-东配楼_" },
+        { "regex": "D-N(.*)", "replace": "N-D_N$1" },
+        { "regex": "D-S(.*)", "replace": "S-D_S$1" },
+        { "regex": "邮政楼D1-(.*)", "replace": "邮政楼-D1_$1" },
+        { "regex": "^D1-(.*)$", "replace": "邮政楼-D1_$1" },
+        { "regex": "办-(.*)", "replace": "综合办公楼-$1" },
+        { "regex": "地下一层自动化", "replace": "教学实验综合楼-地下一层自动化" },
+        { "regex": "报告厅", "replace": "教学实验综合楼-报告厅" },
+        { "regex": "学-(.*)", "replace": "学生活动中心-$1" },
+        { "regex": "(..楼)(\\d+)", "replace": "$1-$2" },
+        { "regex": "电路中心(\\d+)", "replace": "电路中心实验楼-$1" }
+      ]
+    },
+    {
+      "name": "海南",
+      "id": 3,
+      "has_realtime": false,
+      "replace_regex": [
+        { "regex": "(..楼)(\\d+)室?", "replace": "$1-$2" }
+      ]
+    }
+  ]
+}

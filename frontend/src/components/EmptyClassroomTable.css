@@ -1,0 +1,68 @@
+.empty-classroom-table {
+  margin-bottom: 15px;
+}
+
+.empty-classroom-table__card {
+  overflow: hidden;
+}
+
+.empty-classroom-table__scroll {
+  overflow-x: auto;
+}
+
+.empty-classroom-table__table {
+  width: 100%;
+  border-collapse: collapse;
+  color: var(--ui-text);
+}
+
+.empty-classroom-table__table th,
+.empty-classroom-table__table td {
+  padding: 14px 12px;
+  text-align: center;
+  border-bottom: 1px solid var(--ui-border);
+}
+
+.empty-classroom-table__table th {
+  font-size: 14px;
+  color: var(--ui-text-muted);
+  background: rgba(127, 108, 84, 0.06);
+}
+
+.empty-classroom-table__table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.empty-classroom-table__header-inline {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.empty-classroom-table__details {
+  display: grid;
+  gap: 14px;
+  margin: 0;
+}
+
+.empty-classroom-table__details div {
+  display: grid;
+  gap: 6px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--ui-border);
+}
+
+.empty-classroom-table__details div:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.empty-classroom-table__details dt {
+  font-weight: 600;
+}
+
+.empty-classroom-table__details dd {
+  margin: 0;
+  color: var(--ui-text-muted);
+  line-height: 1.7;
+}

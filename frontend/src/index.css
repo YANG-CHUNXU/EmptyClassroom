@@ -1,0 +1,22 @@
+body {
+    margin: 0;
+    min-width: 320px;
+    font-family: "PingFang SC", "Hiragino Sans GB", "Noto Sans SC", sans-serif;
+    background: var(--ui-bg);
+    color: var(--ui-text);
+}
+
+body.dark {
+    background-color: #141414;
+}
+
+button,
+input,
+select,
+textarea {
+    font: inherit;
+}
+
+a {
+    color: inherit;
+}

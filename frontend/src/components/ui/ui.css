@@ -1,0 +1,207 @@
+:root {
+  --ui-bg: #f6f5f2;
+  --ui-surface: rgba(255, 255, 255, 0.86);
+  --ui-surface-strong: #ffffff;
+  --ui-surface-muted: #f5f4ef;
+  --ui-border: rgba(64, 51, 36, 0.12);
+  --ui-border-strong: rgba(64, 51, 36, 0.22);
+  --ui-text: #2e261f;
+  --ui-text-muted: #70655a;
+  --ui-primary: #2f6fed;
+  --ui-primary-strong: #1f56c3;
+  --ui-primary-soft: rgba(47, 111, 237, 0.12);
+  --ui-warning: #b85c00;
+  --ui-warning-soft: rgba(255, 176, 73, 0.18);
+  --ui-danger: #c53f3f;
+  --ui-danger-soft: rgba(197, 63, 63, 0.14);
+  --ui-success: #1c8f5d;
+  --ui-success-soft: rgba(28, 143, 93, 0.14);
+  --ui-shadow: 0 18px 42px rgba(35, 26, 20, 0.08);
+  --ui-radius: 18px;
+}
+
+body.dark {
+  --ui-bg: #141414;
+  --ui-surface: rgba(30, 30, 30, 0.92);
+  --ui-surface-strong: #1f1f1f;
+  --ui-surface-muted: #252525;
+  --ui-border: rgba(255, 255, 255, 0.1);
+  --ui-border-strong: rgba(255, 255, 255, 0.16);
+  --ui-text: #f5f5f5;
+  --ui-text-muted: #b7b7b7;
+  --ui-primary: #6ea2ff;
+  --ui-primary-strong: #8db4ff;
+  --ui-primary-soft: rgba(110, 162, 255, 0.18);
+  --ui-warning: #ffcb6b;
+  --ui-warning-soft: rgba(255, 203, 107, 0.14);
+  --ui-danger: #ff8b8b;
+  --ui-danger-soft: rgba(255, 139, 139, 0.16);
+  --ui-success: #62d8a7;
+  --ui-success-soft: rgba(98, 216, 167, 0.16);
+  --ui-shadow: 0 24px 54px rgba(0, 0, 0, 0.36);
+}
+
+.ui-card {
+  width: min(92vw, 400px);
+  margin: 0 auto 15px;
+  background: var(--ui-surface);
+  border: 1px solid var(--ui-border);
+  box-shadow: var(--ui-shadow);
+  border-radius: var(--ui-radius);
+  padding: 18px;
+  backdrop-filter: blur(12px);
+  box-sizing: border-box;
+}
+
+.ui-card--flush {
+  padding: 0;
+}
+
+.ui-button {
+  border: 1px solid var(--ui-border);
+  background: var(--ui-surface-strong);
+  color: var(--ui-text);
+  border-radius: 12px;
+  min-height: 36px;
+  padding: 0 14px;
+  font: inherit;
+  cursor: pointer;
+  transition: transform 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+}
+
+.ui-button:hover:not(:disabled) {
+  border-color: var(--ui-border-strong);
+  transform: translateY(-1px);
+}
+
+.ui-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.ui-button--primary {
+  background: var(--ui-primary);
+  color: #fff;
+  border-color: transparent;
+}
+
+.ui-button--primary:hover:not(:disabled) {
+  background: var(--ui-primary-strong);
+}
+
+.ui-button--ghost {
+  background: transparent;
+}
+
+.ui-button--icon {
+  width: 36px;
+  padding: 0;
+}
+
+.ui-button--link {
+  border: 0;
+  background: transparent;
+  color: var(--ui-primary);
+  min-height: auto;
+  padding: 0;
+}
+
+.ui-button--danger {
+  color: var(--ui-danger);
+}
+
+.ui-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.ui-pill--success {
+  background: var(--ui-success-soft);
+  color: var(--ui-success);
+}
+
+.ui-pill--danger {
+  background: var(--ui-danger-soft);
+  color: var(--ui-danger);
+}
+
+.ui-empty-state {
+  min-height: 160px;
+  display: grid;
+  place-items: center;
+  text-align: center;
+  color: var(--ui-text-muted);
+  padding: 12px;
+}
+
+.ui-empty-state__icon {
+  width: 46px;
+  height: 46px;
+  border: 1px solid var(--ui-border);
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+  margin-bottom: 14px;
+  color: var(--ui-border-strong);
+}
+
+.ui-empty-state__title {
+  font-weight: 600;
+  color: var(--ui-text);
+}
+
+.ui-empty-state__description {
+  margin-top: 10px;
+  line-height: 1.6;
+  color: var(--ui-text-muted);
+}
+
+.ui-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(20, 16, 12, 0.5);
+  display: grid;
+  place-items: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.ui-modal {
+  max-height: min(80vh, 640px);
+  overflow: auto;
+  background: var(--ui-surface-strong);
+  color: var(--ui-text);
+  border: 1px solid var(--ui-border);
+  border-radius: 22px;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.28);
+}
+
+.ui-modal__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 20px 20px 0;
+}
+
+.ui-modal__title {
+  margin: 0;
+  font-size: 20px;
+}
+
+.ui-modal__body {
+  padding: 18px 20px 20px;
+}
+
+.ui-inline-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}

@@ -1,0 +1,21 @@
+.class-table-warn {
+  width: min(92vw, 400px);
+  margin-bottom: 15px;
+  box-sizing: border-box;
+  text-align: left;
+  padding: 16px 18px;
+  border-radius: 18px;
+  background: var(--ui-warning-soft);
+  border: 1px solid rgba(184, 92, 0, 0.18);
+  color: var(--ui-text);
+  box-shadow: var(--ui-shadow);
+}
+
+.class-table-warn__content {
+  margin-bottom: 12px;
+  line-height: 1.7;
+}
+
+.class-table-warn__confirm {
+  color: var(--ui-text-muted);
+}

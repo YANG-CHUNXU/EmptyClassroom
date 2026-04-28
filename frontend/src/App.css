@@ -1,0 +1,56 @@
+.App {
+    min-height: 100vh;
+    text-align: center;
+    padding: 24px 16px 40px;
+    color: var(--ui-text);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background:
+        radial-gradient(circle at top, rgba(245, 194, 95, 0.16), transparent 28%),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.65), transparent 35%),
+        var(--ui-bg);
+    box-sizing: border-box;
+}
+
+.logo {
+    width: 7em;
+    margin: 0 auto;
+    display: block;
+    margin-top: 0;
+    margin-bottom: 6px;
+}
+
+.app-title {
+    margin: 0 0 22px;
+    font-size: clamp(1.8rem, 4vw, 2.25rem);
+    line-height: 1.2;
+}
+
+.app-loading {
+    margin: 0 auto 15px;
+    width: fit-content;
+    padding: 10px 14px;
+    border-radius: 999px;
+    background: var(--ui-primary-soft);
+    color: var(--ui-text);
+}
+
+.app-stale-notice {
+    width: min(720px, 100%);
+    margin: 0 auto 14px;
+    box-sizing: border-box;
+    padding: 10px 14px;
+    border: 1px solid rgba(196, 137, 28, 0.35);
+    border-radius: 8px;
+    background: rgba(255, 247, 214, 0.78);
+    color: #7a4d08;
+    font-size: 0.95rem;
+    line-height: 1.45;
+}
+
+body.dark .app-stale-notice {
+    border-color: rgba(245, 194, 95, 0.35);
+    background: rgba(87, 63, 18, 0.42);
+    color: #f8d889;
+}
