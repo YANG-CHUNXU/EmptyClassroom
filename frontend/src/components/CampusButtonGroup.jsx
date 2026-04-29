@@ -85,11 +85,11 @@ function CampusButtonGroup(props) {
         </div>
         <button
           type="button"
-          className="ui-button ui-button--ghost ui-button--icon"
+          className="ui-button ui-button--ghost campus-button-group__settings-button"
           onClick={() => setOpenSettingModal(true)}
           aria-label="打开设置"
         >
-          设
+          设置
         </button>
       </div>
       <div className="campus-button-group__options" role="tablist" aria-label="校区选择">

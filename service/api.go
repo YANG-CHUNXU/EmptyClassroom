@@ -5,6 +5,8 @@ import (
 	"EmptyClassroom/service/model"
 	"EmptyClassroom/snapshot"
 	"context"
+	"errors"
+	"time"
 )
 
 const dataNotReadyMessage = "数据暂未准备好，请稍后刷新"
@@ -70,10 +72,26 @@ func ResolveClassInfo(ctx context.Context, store snapshot.Store) (*model.ClassIn
 }
 
 func RefreshSnapshot(ctx context.Context, store snapshot.Store) (*model.ClassInfo, error) {
+	var previous *model.ClassInfo
+	if store != nil {
+		loaded, err := store.Load(ctx)
+		if err == nil {
+			previous = loaded
+		} else if !errors.Is(err, snapshot.ErrSnapshotNotFound) {
+			logs.CtxWarn(ctx, "load previous class info snapshot failed, catalog will be rebuilt from current data: %v", err)
+		}
+	}
+
 	classInfo, err := queryAll(ctx)
 	if err != nil {
 		return nil, err
 	}
+
+	observedAt := classInfo.UpdateAt
+	if observedAt.IsZero() {
+		observedAt = time.Now()
+	}
+	MergeClassroomCatalog(previous, classInfo, observedAt)
 
 	if store != nil {
 		if err := store.Save(ctx, classInfo); err != nil {

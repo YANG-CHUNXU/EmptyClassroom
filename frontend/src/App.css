@@ -13,6 +13,13 @@
     box-sizing: border-box;
 }
 
+body.dark .App {
+    background:
+        radial-gradient(circle at top, rgba(121, 167, 255, 0.1), transparent 30%),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.03), transparent 28%),
+        var(--ui-bg);
+}
+
 .logo {
     width: 7em;
     margin: 0 auto;

@@ -3,7 +3,7 @@ import "./Footer.css";
 function Footer() {
   return (
     <div className="footer">
-      © 2022-2026 YANG-CHUNXU
+      © 2026 YANG-CHUNXU
       <button
         type="button"
         className="ui-button ui-button--link footer__link"

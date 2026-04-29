@@ -171,7 +171,6 @@ function EmptyClassroomTable(props) {
               <tr>
                 <th>教室</th>
                 <th>座位数</th>
-                <th>类型</th>
                 <th>
                   <span className="empty-classroom-table__header-inline">
                     来源
@@ -203,7 +202,6 @@ function EmptyClassroomTable(props) {
                     </button>
                   </td>
                   <td>{record.size}</td>
-                  <td>{record.type}</td>
                   <td>
                     <span
                       className={`ui-pill ${
@@ -230,10 +228,6 @@ function EmptyClassroomTable(props) {
             <div>
               <dt>座位数</dt>
               <dd>{selectedClassroom.size}</dd>
-            </div>
-            <div>
-              <dt>类型</dt>
-              <dd>{selectedClassroom.type}</dd>
             </div>
             <div>
               <dt>空闲时间</dt>

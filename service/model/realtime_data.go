@@ -40,6 +40,25 @@ type ClassroomInfo struct {
 	Type       string `json:"type"`
 }
 
+type ClassroomCatalog map[string]BuildingClassroomCatalog
+
+type BuildingClassroomCatalog map[string]RoomClassroomCatalog
+
+type RoomClassroomCatalog map[string]*ClassroomCatalogEntry
+
+type ClassroomCatalogEntry struct {
+	Name          string    `json:"name"`
+	BuildingName  string    `json:"building_name"`
+	ClassroomName string    `json:"classroom_name"`
+	Size          int64     `json:"size"`
+	CanTrust      bool      `json:"can_trust"`
+	Type          string    `json:"type"`
+	Source        string    `json:"source"`
+	FirstSeen     time.Time `json:"first_seen"`
+	LastSeen      time.Time `json:"last_seen"`
+	SeenCount     int       `json:"seen_count"`
+}
+
 type BuildingInfo struct {
 	Name             string                 `json:"name"`
 	ClassroomInfoMap map[int]*ClassroomInfo `json:"classroom_info_map"`
@@ -56,14 +75,15 @@ type CampusInfo struct {
 }
 
 type ClassInfo struct {
-	CampusInfoMap  map[string]*CampusInfo     `json:"campus_info_map"`
-	ClassTable     *config.ClassTableConfig   `json:"class_table"`
-	UpdateAt       time.Time                  `json:"update_at"`
-	ConfigVersion  string                     `json:"config_version,omitempty"`
-	IsStale        bool                       `json:"is_stale,omitempty"`
-	StaleReason    string                     `json:"stale_reason,omitempty"`
-	Notification   *config.NotificationConfig `json:"notification"`
-	IsFallback     map[string]bool            `json:"is_fallback"`
-	FallbackReason map[string]string          `json:"fallback_reason,omitempty"`
-	EmptyReason    string                     `json:"empty_reason,omitempty"`
+	CampusInfoMap    map[string]*CampusInfo     `json:"campus_info_map"`
+	ClassTable       *config.ClassTableConfig   `json:"class_table"`
+	UpdateAt         time.Time                  `json:"update_at"`
+	ConfigVersion    string                     `json:"config_version,omitempty"`
+	IsStale          bool                       `json:"is_stale,omitempty"`
+	StaleReason      string                     `json:"stale_reason,omitempty"`
+	Notification     *config.NotificationConfig `json:"notification"`
+	IsFallback       map[string]bool            `json:"is_fallback"`
+	FallbackReason   map[string]string          `json:"fallback_reason,omitempty"`
+	EmptyReason      string                     `json:"empty_reason,omitempty"`
+	ClassroomCatalog ClassroomCatalog           `json:"classroom_catalog,omitempty"`
 }

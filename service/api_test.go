@@ -138,3 +138,58 @@ func TestRefreshSnapshotQueriesRealtimeAndSaves(t *testing.T) {
 		t.Fatalf("saved snapshot = %#v, want query result", store.saved)
 	}
 }
+
+func TestRefreshSnapshotMergesPreviousClassroomCatalog(t *testing.T) {
+	previous := &model.ClassInfo{
+		ClassroomCatalog: model.ClassroomCatalog{
+			"沙河": {
+				"N": {
+					"101": {
+						Name:          "N-101",
+						BuildingName:  "N",
+						ClassroomName: "101",
+						Size:          80,
+						Source:        "教务",
+						CanTrust:      true,
+						SeenCount:     4,
+					},
+				},
+			},
+		},
+	}
+	current := &model.ClassInfo{
+		ConfigVersion: currentConfigVersion,
+		CampusInfoMap: map[string]*model.CampusInfo{
+			"沙河": {
+				Name: "沙河",
+				BuildingInfoMap: map[int]*model.BuildingInfo{
+					0: {
+						Name: "N",
+						ClassroomInfoMap: map[int]*model.ClassroomInfo{
+							0: {Name: "102", Size: 120, CanTrust: true},
+						},
+					},
+				},
+			},
+		},
+	}
+	withQueryAllStub(t, func(context.Context) (*model.ClassInfo, error) {
+		return current, nil
+	})
+
+	store := &fakeSnapshotStore{loadClassInfo: previous}
+	got, err := RefreshSnapshot(context.Background(), store)
+	if err != nil {
+		t.Fatalf("RefreshSnapshot() error = %v", err)
+	}
+
+	if got.ClassroomCatalog["沙河"]["N"]["101"] == nil {
+		t.Fatal("previous catalog entry should be preserved")
+	}
+	if got.ClassroomCatalog["沙河"]["N"]["102"] == nil {
+		t.Fatal("current snapshot entry should be added")
+	}
+	if store.saved.ClassroomCatalog["沙河"]["N"]["101"] == nil {
+		t.Fatal("saved snapshot should include previous catalog entry")
+	}
+}

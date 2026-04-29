@@ -7,7 +7,7 @@ body {
 }
 
 body.dark {
-    background-color: #141414;
+    background-color: var(--ui-bg);
 }
 
 button,

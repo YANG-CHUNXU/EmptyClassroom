@@ -10,6 +10,7 @@ import EmptyClassroomTable from "./components/EmptyClassroomTable";
 import GlobalEmpty from "./components/GlobalEmpty";
 import Footer from "./components/Footer";
 import ClassTableWarn from "./components/ClassTableWarn";
+import SeatQueryPanel from "./components/SeatQueryPanel";
 import "./components/ui/ui.css";
 
 function App() {
@@ -17,7 +18,7 @@ function App() {
   const [isError, setIsError] = useState(false);
   const [resp, setResp] = useState({ code: 1 });
   const [selectedCampus, setSelectedCampus] = useState("");
-  const [selectedDate, setSelectedDate] = useState(dayjs());
+  const [selectedDate] = useState(dayjs());
   const [selectedBuildings, setSelectedBuildings] = useState([]);
   const [selectedClassTimes, setSelectedClassTimes] = useState([]);
   const [showClassTime, setShowClassTime] = useState(false);
@@ -34,11 +35,9 @@ function App() {
       if (e.matches) {
         body.classList.add("dark");
         setIsDark(true);
-        localStorage.setItem("darkMode", "true");
       } else {
         body.classList.remove("dark");
         setIsDark(false);
-        localStorage.setItem("darkMode", "false");
       }
     }
 
@@ -62,6 +61,10 @@ function App() {
     setDontWarnClassTable(
       localStorage.getItem("dontWarnClassTable") === "true"
     );
+
+    return () => {
+      mql.removeEventListener("change", matchMode);
+    };
   }, []);
 
   return (
@@ -93,6 +96,11 @@ function App() {
         selectedBuildings={selectedBuildings}
         setSelectedBuildings={setSelectedBuildings}
         selectedCampus={selectedCampus}
+      />
+      <SeatQueryPanel
+        todayData={resp}
+        selectedCampus={selectedCampus}
+        selectedBuildings={selectedBuildings}
       />
       <ClassTimePicker
         todayData={resp}

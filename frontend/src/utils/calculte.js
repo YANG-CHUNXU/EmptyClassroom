@@ -11,7 +11,7 @@ function CalculateEmptyClassroom(classInfo, selectedCampus, selectedDate, select
         for (let classroomId in buildingInfo.classroom_info_map) {
             const classroomInfo = buildingInfo.classroom_info_map[classroomId];
             let emptyClassroom = {
-                name: buildingInfo.name + '-' + classroomInfo.name,
+                name: formatClassroomDisplayName(buildingInfo.name, classroomInfo.name),
                 size: classroomInfo.size == 0 ? '无数据' : classroomInfo.size,
                 can_trust: classroomInfo.can_trust,
                 type: (classroomInfo.type == '' ? '无数据' : classroomInfo.type) ?? '无数据',
@@ -41,6 +41,16 @@ function CalculateEmptyClassroom(classInfo, selectedCampus, selectedDate, select
         }
     });
     return emptyClassroomList;
+}
+
+function formatClassroomDisplayName(buildingName, classroomName) {
+    if (buildingName == '' || classroomName == '') {
+        return classroomName;
+    }
+    if (classroomName.startsWith(buildingName)) {
+        return classroomName;
+    }
+    return buildingName + '-' + classroomName;
 }
 
 function CalculateSelectedDateClassInfo(classInfo, selectedCampus, selectedDate) {

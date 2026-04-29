@@ -19,6 +19,11 @@
   color: var(--ui-text);
 }
 
+.campus-button-group__settings-button {
+  min-width: 56px;
+  white-space: nowrap;
+}
+
 .campus-button-group__options {
   display: flex;
   justify-content: center;
