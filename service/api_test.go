@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"testing"
+	"time"
 )
 
 type fakeSnapshotStore struct {
@@ -191,5 +192,71 @@ func TestRefreshSnapshotMergesPreviousClassroomCatalog(t *testing.T) {
 	}
 	if store.saved.ClassroomCatalog["沙河"]["N"]["101"] == nil {
 		t.Fatal("saved snapshot should include previous catalog entry")
+	}
+}
+
+func TestRefreshSnapshotMergesIdleRateHistory(t *testing.T) {
+	previous := &model.ClassInfo{
+		IdleRateHistory: []model.IdleRateHistoryEntry{
+			{Date: "2026-05-26", Campus: map[string]model.IdleRateCampusStats{}},
+		},
+	}
+	current := &model.ClassInfo{
+		ConfigVersion: currentConfigVersion,
+		UpdateAt:      time.Date(2026, 5, 27, 8, 0, 0, 0, time.UTC),
+		CampusInfoMap: map[string]*model.CampusInfo{
+			"沙河": {
+				Name:          "沙河",
+				BuildingIdMap: map[string]int{"N": 0},
+				BuildingInfoMap: map[int]*model.BuildingInfo{
+					0: {
+						Name:           "N",
+						ClassroomIdMap: map[string]int{"101": 0},
+						ClassroomInfoMap: map[int]*model.ClassroomInfo{
+							0: {Name: "101", Size: 80, CanTrust: true},
+						},
+						ClassMatrix: [][]int{
+							{0},
+							{0},
+							{0},
+							{0},
+							{0},
+							{0},
+							{0},
+							{0},
+							{0},
+							{0},
+							{0},
+							{0},
+							{0},
+							{0},
+						},
+					},
+				},
+			},
+		},
+	}
+	withQueryAllStub(t, func(context.Context) (*model.ClassInfo, error) {
+		return current, nil
+	})
+
+	store := &fakeSnapshotStore{loadClassInfo: previous}
+	got, err := RefreshSnapshot(context.Background(), store)
+	if err != nil {
+		t.Fatalf("RefreshSnapshot() error = %v", err)
+	}
+
+	if len(got.IdleRateHistory) != 2 {
+		t.Fatalf("len(IdleRateHistory) = %d, want 2", len(got.IdleRateHistory))
+	}
+	latest := got.IdleRateHistory[1]
+	if latest.Date != "2026-05-27" {
+		t.Fatalf("latest Date = %q, want 2026-05-27", latest.Date)
+	}
+	if latest.Campus["沙河"]["N"].Periods[0].IdleRate != 1 {
+		t.Fatalf("latest first period idle rate = %f, want 1", latest.Campus["沙河"]["N"].Periods[0].IdleRate)
+	}
+	if len(store.saved.IdleRateHistory) != 2 {
+		t.Fatalf("saved IdleRateHistory len = %d, want 2", len(store.saved.IdleRateHistory))
 	}
 }

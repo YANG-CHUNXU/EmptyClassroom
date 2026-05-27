@@ -2,35 +2,6 @@
   text-align: left;
 }
 
-.seat-query-panel__header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 14px;
-}
-
-.seat-query-panel.is-collapsed .seat-query-panel__header {
-  margin-bottom: 0;
-}
-
-.seat-query-panel__title {
-  margin: 0;
-  font-size: 18px;
-  line-height: 1.3;
-}
-
-.seat-query-panel__subtitle {
-  margin: 6px 0 0;
-  color: var(--ui-text-muted);
-  font-size: 13px;
-  line-height: 1.5;
-}
-
-.seat-query-panel__toggle {
-  flex: 0 0 auto;
-}
-
 .seat-query-panel__controls {
   display: grid;
   grid-template-columns: 1fr 1fr;

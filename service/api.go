@@ -92,6 +92,7 @@ func RefreshSnapshot(ctx context.Context, store snapshot.Store) (*model.ClassInf
 		observedAt = time.Now()
 	}
 	MergeClassroomCatalog(previous, classInfo, observedAt)
+	MergeIdleRateHistory(previous, classInfo, observedAt)
 
 	if store != nil {
 		if err := store.Save(ctx, classInfo); err != nil {
