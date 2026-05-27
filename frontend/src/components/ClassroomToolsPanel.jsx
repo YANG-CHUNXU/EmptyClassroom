@@ -5,12 +5,13 @@ import IdleRatePanel from "./IdleRatePanel";
 import SeatQueryPanel from "./SeatQueryPanel";
 import {
   CLASSROOM_TOOL_TABS,
+  DEFAULT_CLASSROOM_TOOLS_OPEN,
   DEFAULT_CLASSROOM_TOOL_TAB,
 } from "../utils/classroomTools";
 import "./ClassroomToolsPanel.css";
 
 function ClassroomToolsPanel({ todayData, selectedCampus, selectedBuildings }) {
-  const [isOpen, setIsOpen] = useState(true);
+  const [isOpen, setIsOpen] = useState(DEFAULT_CLASSROOM_TOOLS_OPEN);
   const [activeTab, setActiveTab] = useState(DEFAULT_CLASSROOM_TOOL_TAB);
 
   if (todayData.code != 0 || selectedCampus == "") {
