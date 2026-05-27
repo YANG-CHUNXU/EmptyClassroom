@@ -10,7 +10,7 @@ import EmptyClassroomTable from "./components/EmptyClassroomTable";
 import GlobalEmpty from "./components/GlobalEmpty";
 import Footer from "./components/Footer";
 import ClassTableWarn from "./components/ClassTableWarn";
-import SeatQueryPanel from "./components/SeatQueryPanel";
+import ClassroomToolsPanel from "./components/ClassroomToolsPanel";
 import "./components/ui/ui.css";
 
 function App() {
@@ -97,7 +97,7 @@ function App() {
         setSelectedBuildings={setSelectedBuildings}
         selectedCampus={selectedCampus}
       />
-      <SeatQueryPanel
+      <ClassroomToolsPanel
         todayData={resp}
         selectedCampus={selectedCampus}
         selectedBuildings={selectedBuildings}

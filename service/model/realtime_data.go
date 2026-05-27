@@ -86,4 +86,24 @@ type ClassInfo struct {
 	FallbackReason   map[string]string          `json:"fallback_reason,omitempty"`
 	EmptyReason      string                     `json:"empty_reason,omitempty"`
 	ClassroomCatalog ClassroomCatalog           `json:"classroom_catalog,omitempty"`
+	IdleRateHistory  []IdleRateHistoryEntry     `json:"idle_rate_history,omitempty"`
+}
+
+type IdleRateHistoryEntry struct {
+	Date   string                         `json:"date"`
+	Campus map[string]IdleRateCampusStats `json:"campus"`
+}
+
+type IdleRateCampusStats map[string]IdleRateBuildingStats
+
+type IdleRateBuildingStats struct {
+	KnownClassrooms int                  `json:"known_classrooms"`
+	Periods         []IdleRatePeriodStat `json:"periods"`
+	AverageRate     float64              `json:"average_rate"`
+}
+
+type IdleRatePeriodStat struct {
+	EmptyClassrooms int     `json:"empty_classrooms"`
+	TotalClassrooms int     `json:"total_classrooms"`
+	IdleRate        float64 `json:"idle_rate"`
 }
